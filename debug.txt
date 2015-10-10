@@ -1,0 +1,44 @@
+Log set 1278271612
+Loading settings...
+videoinfo: desktop bpp 32
+Graphics::SetResolution(3)
+Setting scaling 3 and fullscreen=no
+Graphics::InitVideo
+Graphics::FlushAll()
+SIFLoader::LoadHeader: read index of 6 sections
+Loading SIF section 1 from address 003b
+Loading SIF section 2 from address 043a
+sslib: initilization was successful.
+Loading Sound FX...
+LoadFXCache: restoring pxts from cache
+Calculating pitch scale...
+-- Drums loaded from cache
+tsc_load: loading 'data/Head.tsc' to page 0
+tsc_load: loading 'data/ArmsItem.tsc' to page 2
+tsc_load: loading 'data/StageSelect.tsc' to page 3
+Reading npc.tbl...
+InitList::CallFunctions(00737b80): executing 61 functions...
+initslopetable: generating slopetables.
+initmapfirsttime: loading tilekey.dat.
+Setting tick function to type 1 param 0
+= Loading game =
+game_load: loading savefile 0
+Loading profile from profile.dat...
+ - Read Teleporter Slot 0: slotno=1 scriptno=6001
+ >> Entering stage 11: 'Mimiga Village'.
+load_map: level size 60x60
+load_map: 'data/Stage/Mimi.pxm' loaded OK! - 60x60
+load_pxa: reading in data/Stage/Mimi.pxa
+load_entities: reading in data/Stage/Mimi.pxe
+ -- Appearing object 105 (OBJ_DOOR_BUSTED(41)) because flag 360 is set
+ -- Disappearing object 105 (OBJ_DOOR(18)) because flag 360 is set
+ -- Disappearing object 111 (OBJ_JACK(74)) because flag 327 is set
+ -- Disappearing object 300 (OBJ_TOROKO(60)) because flag 320 is set
+ -- Disappearing object 301 (OBJ_KING(61)) because flag 320 is set
+tsc_load: loading 'data/Stage/Mimi.tsc' to page 1
+Replay::OnGameStarting()
+begin_record_next: starting record to slot 1
+begin_record('replay/rep1.dat')
+StageBossManager::SetType(0)
+end_record(): wrote 45 frames
+Graphics::Close()
