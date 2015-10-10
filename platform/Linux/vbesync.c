@@ -4,7 +4,7 @@
 #include <libdrm/drm.h>
 #include <errno.h>
 #define DRM_VBLANK_RELATIVE		0x1
-
+#if 0
 void platform_sync_to_vblank(void)
 {
 static char initilized = 0;
@@ -43,3 +43,4 @@ int ret;
 	while(ret && errno == EINTR);
 	
 }
+#endif

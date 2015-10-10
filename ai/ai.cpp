@@ -24,7 +24,7 @@ bool ai_init(void)
 	// of every AI-related module which assign AI logic to objects.
 	if (AIRoutines.CallFunctions())
 	{
-		staterr("ai_init: failed to initilize AIRoutines function pointers");
+		staterr("ai_init: failed to initialize AIRoutines function pointers");
 		return 1;
 	}
 	

@@ -29,7 +29,7 @@ const char *org_names[] =
 	"fanfale3", "tyrant", "run", "jenka1", "labyrinth", "access", "oppression", "geothermal",
 	"theme", "oside", "heroend", "scorching", "quiet", "lastcave", "balcony", "charge",
 	"lastbattle", "credits", "zombie", "breakdown", "hell", "jenka2", "waterway", "seal",
-	"toroko", "white", NULL
+	"toroko", "white", "azarashi", NULL
 };
 
 static const char bossmusic[] = { 4, 7, 10, 11, 15, 16, 17, 18, 21, 22, 31, 33, 35, 0 };
@@ -47,7 +47,7 @@ bool sound_init(void)
 	
 	if (org_init(org_wavetable, pxt_dir, ORG_VOLUME))
 	{
-		staterr("Music failed to initilize");
+		staterr("Music failed to initialize");
 		return 1;
 	}
 	

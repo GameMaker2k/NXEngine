@@ -124,6 +124,7 @@ int safemode::run_until_key(bool delay)
 	}
 	while(last_sdl_key == -1);
 	
+	stat("returning key %d", last_sdl_key);
 	return last_sdl_key;
 }
 

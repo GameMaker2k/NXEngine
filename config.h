@@ -11,12 +11,9 @@
 
 // include the Doukutsu data-file extractor in the build
 // (it's needed only the first time the program is run).
-//#define CONFIG_DATA_EXTRACTOR
+#define CONFIG_DATA_EXTRACTOR
 
 // do image scaling in hardware via OpenGL
 //#define CONFIG_OPENGL
-
-// define if compiling on a big-endian platform
-//#define CONFIG_BIG_ENDIAN
 
 #endif

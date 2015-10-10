@@ -22,7 +22,7 @@ bool settings_load(Settings *setfile)
 	
 	if (tryload(settings))
 	{
-		stat("No saved settings; setting defaults.", setfilename);
+		stat("No saved settings; using defaults.");
 		
 		memset(setfile, 0, sizeof(Settings));
 		setfile->resolution = 2;		// 640x480 Windowed, should be safe value
@@ -37,7 +37,7 @@ bool settings_load(Settings *setfile)
 		setfile->emulate_bugs = false;
 		setfile->no_quake_in_hell = false;
 		setfile->inhibit_fullscreen = false;
-		setfile->files_extracted = true;
+		setfile->files_extracted = false;
 		
 		// I found that 8bpp->32bpp blits are actually noticably faster
 		// than 32bpp->32bpp blits on several systems I tested. Not sure why
@@ -50,11 +50,11 @@ bool settings_load(Settings *setfile)
 	}
 	else
 	{
-		#ifndef __SDLSHIM__
-			input_set_mappings(settings->input_mappings);
-		#else
+		#ifdef __SDLSHIM__
 			stat("settings_load(): Hey FIXME!!!");
 			settings->show_fps = true;
+		#else
+			input_set_mappings(settings->input_mappings);
 		#endif
 	}
 	
@@ -78,14 +78,14 @@ FILE *fp;
 		return 1;
 	}
 	
-	uint16_t ver = fgeti(fp);
-	if (ver != SETTINGS_VERSION)
+	setfile->version = 0;
+	fread(setfile, sizeof(Settings), 1, fp);
+	if (setfile->version != SETTINGS_VERSION)
 	{
-		stat("Wrong settings version %04x.", ver);
+		stat("Wrong settings version %04x.", setfile->version);
 		return 1;
 	}
 	
-	fread(setfile, sizeof(Settings), 1, fp);
 	fclose(fp);
 	return 0;
 }
@@ -109,7 +109,7 @@ FILE *fp;
 	for(int i=0;i<INPUT_COUNT;i++)
 		setfile->input_mappings[i] = input_get_mapping(i);
 	
-	fputi(SETTINGS_VERSION, fp);
+	setfile->version = SETTINGS_VERSION;
 	fwrite(setfile, sizeof(Settings), 1, fp);
 	
 	fclose(fp);

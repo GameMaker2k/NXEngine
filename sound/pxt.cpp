@@ -6,6 +6,7 @@
 #include <math.h>			// for sin()
 #include <stdlib.h>
 #include <string.h>
+#include <endian.h>
 
 #include "../config.h"
 #include "pxt.h"
@@ -35,12 +36,12 @@
 
 
 #define WHITE_LEN		22050
-signed char white[WHITE_LEN];
+int8_t white[WHITE_LEN];
 
 // the final sounds ready to play (after pxt_PrepareToPlay)
 static struct
 {
-	signed short *buffer;
+	int16_t *buffer;
 	int len;
 	int loops_left;
 	void (*DoneCallback)(int, int);
@@ -51,7 +52,7 @@ int load_top;
 
 static struct
 {
-	unsigned char table[256];
+	uint8_t table[256];
 } wave[PXT_NO_MODELS];
 
 
@@ -66,7 +67,7 @@ static unsigned short rand_next(void)
 
 static void GenerateSineModel(unsigned char *table)
 {
-double tpi = 6.283184000f;
+double twopi = 6.283184000f;
 double ratio = 256.00f;
 double rat64 = 64.00f;
 double reg;
@@ -75,7 +76,7 @@ int i;
 	for(i=0;i<256;i++)
 	{
 		reg = (double)i;
-		reg *= tpi;
+		reg *= twopi;
 		reg /= ratio;
 		reg = sin(reg);
 		reg *= rat64;
@@ -130,7 +131,7 @@ static void GenerateSquareModel(unsigned char *table)
 int i;
 
 	for(i=0;i<128;i++) table[i] = 0x40;
-	for(;i<256;i++) table[i] = -0x40;
+	for(;i<256;i++) table[i] = (uint8_t)-0x40;
 }
 
 
@@ -165,7 +166,7 @@ static void GeneratePulseModel(unsigned char *table)
 int i;
 
 	for(i=0;i<192;i++) table[i] = 0x40;
-	for(;i<256;i++) table[i] = -0x40;
+	for(;i<256;i++) table[i] = (uint8_t)-0x40;
 }
 
 
@@ -178,7 +179,7 @@ int i;
 
 	if (inited)
 	{
-		staterr("pxt_init: pxt module already initilized");
+		staterr("pxt_init: pxt module already initialized");
 		return 0;
 	}
 	else inited = 1;
@@ -696,10 +697,7 @@ int malc_size;
 	{
 		value = buffer[i];
 		value *= 200;
-		
-		#ifdef CONFIG_BIG_ENDIAN
-			value = (value << 8) | (value >> 8);
-		#endif
+		value = htole16(value);
 		
 		outbuffer[ap++] = value;		// left ch
 		outbuffer[ap++] = value;		// right ch
@@ -1276,7 +1274,7 @@ static void SaveEnvVertice(FILE *fp, stPXEnvelope *env, int v)
 	structure with the proper values as spec'd in the file.
 	
 	Then you must synthesize or *render* the sound. First make sure the synthesizer
-	is initilized by calling pxt_init & pxt_initsynth.
+	is initialized by calling pxt_init & pxt_initsynth.
 	
 	Send your stPXSound through render_pxt. Now it includes 8-bit signed PCM audio
 	in final_buffer.

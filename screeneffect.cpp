@@ -282,19 +282,3 @@ void ScreenEffects::Stop()
 	starflash.enabled = false;
 	flashscreen.enabled = false;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

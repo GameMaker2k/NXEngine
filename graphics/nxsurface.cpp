@@ -1,5 +1,6 @@
 
 #include <string.h>
+#include <stdint.h>
 #include "../settings.h"
 #include "../config.h"
 #include "graphics.h"

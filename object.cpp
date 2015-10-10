@@ -132,7 +132,7 @@ Object * const &o = this;
 	o->y -= (sprites[this->sprite].spawn_point.y << CSF);
 	
 	// added this for when you pick up the puppy in the Deserted House in SZ--
-	// makes objects <CNPed during a <PRI initilize immediately instead of waiting
+	// makes objects <CNPed during a <PRI initialize immediately instead of waiting
 	// for <PRI to be released.
 	if (game.frozen)
 	{
@@ -721,7 +721,7 @@ int objectType, bonusType;
 
 	if (!objprop[o->type].xponkill)
 		return;
-
+	
 	bonusType = random(1, 5);
 	if (bonusType >= 3)
 	{

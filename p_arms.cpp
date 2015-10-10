@@ -488,11 +488,13 @@ int xoff, yoff;
 
 	int object_type = (!is_super) ? OBJ_MISSILE_SHOT : OBJ_SUPERMISSILE_SHOT;
 	
-	// can only fire only missile at once on L1,
+	// can only fire one missile at once on L1,
 	// two missiles on L2, and two sets of three missiles on L3.
 	static const uint8_t max_missiles_at_once[] = { 1, 2, 6 };
 	if (CountObjectsOfType(object_type) >= max_missiles_at_once[level])
 	{
+		// give back the previously-decremented ammo so they don't lose it (hack)
+		player->weapons[player->curWeapon].ammo++;
 		return;
 	}
 	

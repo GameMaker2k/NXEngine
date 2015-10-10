@@ -61,33 +61,32 @@ int i;
 	
 	// convert the data
 	memset(mapdata, 0, sizeof(mapdata));
+	const char *error = NULL;
 	
-	try
+	for(i=0;i<NMAPS;i++)
 	{
-		for(i=0;i<NMAPS;i++)
-		{
-			strcpy(mapdata[i].filename, exemapdata[i].filename);
-			strcpy(mapdata[i].stagename, exemapdata[i].caption);
-			
-			mapdata[i].scroll_type = exemapdata[i].scroll_type;
-			mapdata[i].bossNo = exemapdata[i].bossNo;
-			
-			mapdata[i].tileset = find_index(exemapdata[i].tileset, tileset_names);
-			if (mapdata[i].tileset == -1) throw "tileset";
-			
-			mapdata[i].bg_no   = find_index(exemapdata[i].background, backdrop_names);
-			if (mapdata[i].bg_no == -1) throw "backdrop";
-			
-			mapdata[i].NPCset1 = find_index(exemapdata[i].NPCset1, npcsetnames);
-			if (mapdata[i].bg_no == -1) throw "NPCset1";
-			
-			mapdata[i].NPCset2 = find_index(exemapdata[i].NPCset2, npcsetnames);
-			if (mapdata[i].bg_no == -1) throw "NPCset2";
-		}
+		strcpy(mapdata[i].filename, exemapdata[i].filename);
+		strcpy(mapdata[i].stagename, exemapdata[i].caption);
+		
+		mapdata[i].scroll_type = exemapdata[i].scroll_type;
+		mapdata[i].bossNo = exemapdata[i].bossNo;
+		
+		mapdata[i].tileset = find_index(exemapdata[i].tileset, tileset_names);
+		if (mapdata[i].tileset == 0xff) { error = "tileset"; break; }
+		
+		mapdata[i].bg_no   = find_index(exemapdata[i].background, backdrop_names);
+		if (mapdata[i].bg_no == 0xff) { error = "backdrop"; break; }
+		
+		mapdata[i].NPCset1 = find_index(exemapdata[i].NPCset1, npcsetnames);
+		if (mapdata[i].NPCset1 == 0xff) { error = "NPCset1"; break; }
+		
+		mapdata[i].NPCset2 = find_index(exemapdata[i].NPCset2, npcsetnames);
+		if (mapdata[i].NPCset2 == 0xff) { error = "NPCset2"; break; }
 	}
-	catch(const char *what)
+
+	if (error)
 	{
-		status("didn't recognize map %s name", what);
+		status("didn't recognize map %s name", error);
 		print("on stage %d", i);
 		
 		run_until_key();
@@ -122,7 +121,7 @@ static int find_index(const char *fname, const char *list[])
 		}
 	}
 	
-	return -1;
+	return 0xff;
 }
 
 

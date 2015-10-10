@@ -41,7 +41,7 @@ bool freshstart;
 	// so we know the initial screen resolution.
 	settings_load();
 	
-	if (Graphics::init(settings->resolution)) { staterr("Failed to initilize graphics."); return 1; }
+	if (Graphics::init(settings->resolution)) { staterr("Failed to initialize graphics."); return 1; }
 	if (font_init()) { staterr("Failed to load font."); return 1; }
 	
 	//speed_test();
@@ -70,10 +70,10 @@ bool freshstart;
 	}
 	
 	//Graphics::ShowLoadingScreen();
-	if (sound_init()) { fatal("Failed to initilize sound."); return 1; }
+	if (sound_init()) { fatal("Failed to initialize sound."); return 1; }
 	if (trig_init()) { fatal("Failed trig module init."); return 1; }
 	
-	if (tsc_init()) { fatal("Failed to initilize script engine."); return 1; }
+	if (tsc_init()) { fatal("Failed to initialize script engine."); return 1; }
 	if (textbox.Init()) { fatal("Failed to initialize textboxes."); return 1; }
 	if (Carets::init()) { fatal("Failed to initialize carets."); return 1; }
 	
@@ -212,45 +212,45 @@ ingame_error: ;
 
 void gameloop(void)
 {
-uint32_t gametimer;
+int32_t nexttick = 0;
 
-	gametimer = -GAME_WAIT*10;
 	game.switchstage.mapno = -1;
 	
 	while(game.running && game.switchstage.mapno < 0)
 	{
-		uint32_t curtime = SDL_GetTicks();
+		// get time until next tick
+		int32_t curtime = SDL_GetTicks();
+		int32_t timeRemaining = nexttick - curtime;
 		
-		if ((curtime - gametimer >= GAME_WAIT) || game.ffwdtime)
+		if (timeRemaining <= 0 || game.ffwdtime)
 		{
 			run_tick();
 			
 			// try to "catch up" if something else on the system bogs us down for a moment.
 			// but if we get really far behind, it's ok to start dropping frames
 			if (game.ffwdtime)
-			{
-				gametimer = curtime;
 				game.ffwdtime--;
-			}
-			else if ((curtime - gametimer > (GAME_WAIT * 3)))
-			{
-				gametimer = curtime;
-			}
-			else
-			{
-				gametimer += GAME_WAIT;
-			}
+			
+			nexttick = curtime + GAME_WAIT;
 			
 			// pause game if window minimized
 			if ((SDL_GetAppState() & VISFLAGS) != VISFLAGS)
 			{
 				AppMinimized();
-				gametimer = SDL_GetTicks();
+				nexttick = 0;
 			}
+		}
+		else
+		{
+			// don't needlessly hog CPU, but don't sleep for entire
+			// time left, some CPU's/kernels will fall asleep for
+			// too long and cause us to run slower than we should
+			timeRemaining /= 2;
+			if (timeRemaining)
+				SDL_Delay(timeRemaining);
 		}
 	}
 }
-
 
 static inline void run_tick()
 {

@@ -129,7 +129,7 @@ bool first_crc_failure = true;
 		
 		status("[ %s ]", outfilename);
 		
-		// initilize header if any
+		// initialize header if any
 		file = buffer;
 		length = files[i].length;
 		

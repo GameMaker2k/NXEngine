@@ -6,6 +6,7 @@
 
 struct Settings
 {
+	uint16_t version;
 	int resolution;
 	int last_save_slot;
 	bool multisave;

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <endian.h>
 
 #include "../common/basics.h"
 #include "org.h"
@@ -110,6 +111,8 @@ char fname[80];
 int d;
 FILE *fp;
 static const char *drum_cache = "drum.pcm";
+#define DRUM_VERSION	0x0001
+uint16_t version;
 
 	#ifndef DRUM_PXT
 		for(d=0;d<NUM_DRUMS;d++)
@@ -123,15 +126,24 @@ static const char *drum_cache = "drum.pcm";
 		fp = fileopen(drum_cache, "rb");
 		if (fp)
 		{
-			for(d=0;d<NUM_DRUMS;d++)
+			// this also checks for correct endianness
+			fread(&version, sizeof(version), 1, fp);
+			if (version != DRUM_VERSION)
 			{
-				drumtable[d].nsamples = fgetl(fp);
-				drumtable[d].samples = (signed short *)malloc(drumtable[d].nsamples * 2);
-				fread(drumtable[d].samples, drumtable[d].nsamples*2, 1, fp);
+				printf("%s: version incorrect\n", drum_cache);
 			}
-			fclose(fp);
-			stat("-- Drums loaded from cache");
-			return 0;
+			else
+			{
+				for(d=0;d<NUM_DRUMS;d++)
+				{
+					drumtable[d].nsamples = fgetl(fp);
+					drumtable[d].samples = (signed short *)malloc(drumtable[d].nsamples * 2);
+					fread(drumtable[d].samples, drumtable[d].nsamples*2, 1, fp);
+				}
+				fclose(fp);
+				stat("-- Drums loaded from cache");
+				return 0;
+			}
 		}
 		
 		stat("load_drumtable: cache gone; rebuilding drums...");
@@ -151,6 +163,8 @@ static const char *drum_cache = "drum.pcm";
 		fp = fileopen(drum_cache, "wb");
 		if (fp)
 		{
+			version = DRUM_VERSION;
+			fwrite(&version, sizeof(version), 1, fp);
 			for(d=0;d<NUM_DRUMS;d++)
 			{
 				fputl(drumtable[d].nsamples, fp);
@@ -435,7 +449,7 @@ int i;
 	outbuffer_size_bytes = buffer_samples * 2 * 2;		// @ 16-bits, and stereo sound
 	
 	
-	// initilize the per-channel output buffers
+	// initialize the per-channel output buffers
 	for(i=0;i<16;i++)
 	{
 		note_channel[i].outbuffer = (signed short *)malloc(outbuffer_size_bytes);
@@ -443,7 +457,7 @@ int i;
 		//memset(note_channel[i].outbuffer, 0, outbuffer_size_bytes);
 	}
 	
-	// initilize the final (mixed) output buffers
+	// initialize the final (mixed) output buffers
 	for(i=0;i<2;i++)
 	{
 		final_buffer[i].samples = (signed short *)malloc(outbuffer_size_bytes);
@@ -598,7 +612,7 @@ signed short *final;
 		if (mixed_sample > 32767) mixed_sample = 32767;
 		else if (mixed_sample < -32768) mixed_sample = -32768;
 		
-		final[cursample] = mixed_sample;
+		final[cursample] = htole16(mixed_sample);
 	}
 }
 
@@ -704,7 +718,7 @@ int clear_bytes;
 // -------------------
 // note_open
 // -------------------
-// initilizes the synthesis of a new note.
+// initializes the synthesis of a new note.
 // chan: the instrument channel the note will play on
 // wave: the instrument no to play the note with
 // pitch: the pitch variation of the instrument as set in the org

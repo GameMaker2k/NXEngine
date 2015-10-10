@@ -40,7 +40,7 @@ void PInitFirstTime()
 	if (player->XPText) delete player->XPText;
 	player->XPText = new FloatText(SPR_WHITENUMBERS);
 	
-	// initilize player repel points
+	// initialize player repel points
 	PInitRepel();
 }
 

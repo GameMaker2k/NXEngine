@@ -1,8 +1,8 @@
 
 <DEFAULT
-COMPILE=gcc -g -O2 -c %SRCFILE% -D DEBUG `sdl-config --cflags` -Wreturn-type -Wformat -Wno-multichar -o %MODULE%.%OBJ_EXT%
-LPREFIX=gcc -o %OUTPUT%
-LSUFFIX=`sdl-config --libs` -lSDL_ttf -lstdc++
+COMPILE=g++ -g -O2 -c %SRCFILE% -D DEBUG `sdl-config --cflags` -Wreturn-type -Wformat -Wno-multichar -o %MODULE%.%OBJ_EXT%
+LPREFIX=g++ -o %OUTPUT%
+LSUFFIX=`sdl-config --libs` -lSDL_ttf -lstdc++ -lm
 OBJ_EXT=o
 OUTPUT=nx
 

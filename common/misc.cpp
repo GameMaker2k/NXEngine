@@ -12,6 +12,31 @@
 
 void stat(const char *fmt, ...);
 
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+uint16_t fgeti(FILE *fp)
+{
+uint16_t value;
+	fread(&value, 2, 1, fp);
+	return value;
+}
+
+uint32_t fgetl(FILE *fp)
+{
+uint32_t value;
+	fread(&value, 4, 1, fp);
+	return value;
+}
+
+void fputi(uint16_t word, FILE *fp)
+{
+	fwrite(&word, 2, 1, fp);
+}
+
+void fputl(uint32_t word, FILE *fp)
+{
+	fwrite(&word, 4, 1, fp);
+}
+#else
 uint16_t fgeti(FILE *fp)
 {
 uint16_t a, b;
@@ -43,6 +68,7 @@ void fputl(uint32_t word, FILE *fp)
 	fputc(word >> 16, fp);
 	fputc(word >> 24, fp);
 }
+#endif		// __BYTE_ORDER  == __LITTLE_ENDIAN
 
 
 

@@ -50,21 +50,22 @@ FILE *fp;
 
 int extract_main()
 {
-bool result;
+int result;
 
 	if (safemode::init())
 	{
-		staterr("failed to initilize safemode graphics");
+		staterr("failed to initialize safemode graphics");
 		return 1;
 	}
 	
 	result = introduction();
-	#ifndef __SDLSHIM__
-	if (introduction() == SDLK_ESCAPE)
+	#ifdef __SDLSHIM__
+	if (result == SDLK_BTN1)
 	#else
-	if (introduction() == SDLK_BTN1)
+	if (result == SDLK_ESCAPE)
 	#endif
 	{
+		stat("Breaking out");
 		return 1;
 	}
 	
@@ -91,9 +92,9 @@ int introduction()
 	print("folder as the \"nx\" program you just ran.");
 	print("");
 	#ifdef __SDLSHIM__
-	print("If you haven't done that yet, please press ESCAPE now");
-	#else
 	print("If you haven't done that yet, please press BTN1 now");
+	#else
+	print("If you haven't done that yet, please press ESCAPE now");
 	#endif
 	print("and come back in a moment. Otherwise, you can");
 	print("press any other key to start the extraction.");
@@ -106,10 +107,9 @@ int conclusion()
 	moveto(SM_MIDUPPER_Y);
 	print("Success!");
 	print("");
-	print("When you're finished playing, you can");
-	print("remove the Doukutsu.exe file if you like,");
-	print("as it isn't needed anymore. Please leave");
-	print("that \"data\" directory though.");
+	print("You can now remove the Doukutsu.exe file");
+	print("if you like, as it isn't needed anymore.");
+	print("Please leave the \"data\" directory though.");
 	print("");
 	print("Once you get to the title screen, you may want");
 	print("to adjust your resolution by pressing F3.");
@@ -118,12 +118,6 @@ int conclusion()
 	
 	return run_until_key();
 }
-
-/*
-void c------------------------------() {}
-*/
-
-
 
 /*
 void c------------------------------() {}

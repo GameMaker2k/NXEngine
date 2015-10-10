@@ -494,6 +494,7 @@ ScriptInstance *s = &curscript;
 
 void ExecScript(ScriptInstance *s)
 {
+char debugbuffer[256];
 int cmd;
 int val, parm[6];
 int i;
@@ -501,7 +502,6 @@ Object *o;
 char *mnemonic;
 char *str;
 int cmdip;
-char debugbuffer[100];
 
 	#define JUMP_IF(cond) \
 	{	\
@@ -603,13 +603,13 @@ char debugbuffer[100];
 		
 		if (cmd != OP_TEXT)
 		{
-			sprintf(debugbuffer, "%04x <%s ", cmd, mnemonic);
+			snprintf(debugbuffer, sizeof(debugbuffer), "%04x <%s ", cmd, mnemonic);
 			for(i=0;i<cmd_table[cmd].nparams;i++)
 			{
 				val = ((int)s->program[s->ip++]) << 8;
 				val |= s->program[s->ip++];
 				parm[i] = val;
-				sprintf(debugbuffer, "%s %04d", debugbuffer, val);
+				snprintf(debugbuffer, sizeof(debugbuffer), "%s %04d", debugbuffer, val);
 			}
 		}
 		#ifdef TRACE_SCRIPT
@@ -617,7 +617,7 @@ char debugbuffer[100];
 		{
 			char debugbuffer2[10000];
 			crtoslashn((char *)&s->program[s->ip], debugbuffer2);
-			sprintf(debugbuffer, "TEXT  '%s'", debugbuffer2);
+			snprintf(debugbuffer, sizeof(debugbuffer), "TEXT  '%s'", debugbuffer2);
 		}
 		
 		if (cmd == OP_TEXT && !textbox.IsVisible() && !strcmp(debugbuffer, "TEXT  '\n'")) { }
@@ -978,25 +978,23 @@ char debugbuffer[100];
 			
 			case OP_TEXT:		// text to be displayed
 			{
-				stat("<> OP_TEXT 1");
 				str = (char *)&s->program[s->ip];
-				stat("<> OP_TEXT 2");
 				s->ip += (strlen(str) + 1);
-				stat("<> OP_TEXT 3, new ip = %d", s->ip);
 				
 				textbox.AddText(str);
-				
-				stat("<> OP_TEXT 4");
 				
 				// must yield execution, because the message is busy now.
 				// however, if the message contains only CR's, then we don't yield,
 				// because CR's take no time to display.
 				if (contains_non_cr(str))
 				{
-					stat("<> Pausing script execution because msg contains a CR.");
+					//stat("<> Pausing script execution to display message.");
 					return;
 				}
-				stat("<> Textbox continues on...");
+				/*else
+				{
+					stat("<> Message is only CR's, continuing script...");
+				}*/
 			}
 			break;
 			
