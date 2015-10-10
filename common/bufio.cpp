@@ -27,7 +27,9 @@ uint16_t read_U16(const uint8_t **data, const uint8_t *data_end)
 	}
 	
 	*data = (ptr + 2);
-	return *((uint16_t *)ptr);
+	// we should not just cast to a uint16_t, as some processors
+	// e.g. ARM would have alignment issues then, plus endian issues on others.
+	return (ptr[1] << 8) | ptr[0];
 }
 
 uint32_t read_U32(const uint8_t **data, const uint8_t *data_end)
@@ -41,49 +43,7 @@ uint32_t read_U32(const uint8_t **data, const uint8_t *data_end)
 	}
 	
 	*data = (ptr + 4);
-	return *((uint32_t *)ptr);
-}
-
-uint64_t read_U64(const uint8_t **data, const uint8_t *data_end)
-{
-	const uint8_t *ptr = *data;
-	
-	if ((ptr + 7) > data_end)
-	{
-		staterr("read_U32: read past end of buffer: *data + 7 > data_end");
-		return 0xfefefefe;
-	}
-	
-	*data = (ptr + 8);
-	return *((uint64_t *)ptr);
-}
-
-float read_F32(const uint8_t **data, const uint8_t *data_end)
-{
-	const uint8_t *ptr = *data;
-	
-	if ((ptr + 3) > data_end)
-	{
-		staterr("read_F32: read past end of buffer: *data + 3 > data_end");
-		return 0;
-	}
-	
-	*data = (ptr + 4);
-	return *((float *)ptr);
-}
-
-double read_F64(const uint8_t **data, const uint8_t *data_end)
-{
-	const uint8_t *ptr = *data;
-	
-	if ((ptr + 7) > data_end)
-	{
-		staterr("read_F64: read past end of buffer: *data + 7 > data_end");
-		return 0;
-	}
-	
-	*data = (ptr + 8);
-	return *((double *)ptr);
+	return (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 }
 
 /*

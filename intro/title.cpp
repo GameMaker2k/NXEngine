@@ -75,7 +75,7 @@ void title_tick()
 	{
 		if (title.seldelay > 0)
 		{
-			FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0);
+			ClearScreen(BLACK);
 			
 			title.seldelay--;
 			if (!title.seldelay)
@@ -89,7 +89,7 @@ void title_tick()
 	}
 	else
 	{
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0);
+		ClearScreen(BLACK);
 		
 		if (!textbox.SaveSelect.IsVisible())
 		{	// selection was made, and settings.last_save_slot is now set appropriately
@@ -211,7 +211,7 @@ static void handle_input()
 static void draw_title()
 {
 	// background is dk grey, not pure black
-	FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x20, 0x20, 0x20);
+	ClearScreen(0x20, 0x20, 0x20);
 	
 	// top logo
 	int tx = (SCREEN_WIDTH / 2) - (sprites[SPR_TITLE].w / 2) - 2;
@@ -245,7 +245,7 @@ static void draw_title()
 	draw_sprite(cx, acc_y, SPR_PIXEL_FOREVER);
 	
 	// version
-	static const char *VERSION = "NXEngine v. 1.0.0";
+	static const char *VERSION = "NXEngine v. 1.0.0.3";
 	static const int SPACING = 5;
 	int wd = GetFontWidth(VERSION, SPACING);
 	cx = (SCREEN_WIDTH / 2) - (wd / 2);
@@ -255,7 +255,6 @@ static void draw_title()
 	if (title.besttime != 0xffffffff)
 		niku_draw(title.besttime, true);
 }
-
 
 
 

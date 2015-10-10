@@ -63,7 +63,7 @@ void island_tick()
 	island.timer++;
 	
 	// draw the scene
-	FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0);
+	ClearScreen(BLACK);
 	
 	set_clip_rect(island.scene_x, island.scene_y, \
 				sprites[SPR_ISLAND_SCENE].w, sprites[SPR_ISLAND_SCENE].h);

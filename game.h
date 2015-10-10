@@ -151,9 +151,8 @@ struct Game
 #define NXFLAG_SLOW_X_WHEN_HURT		0x0002	// move at half X speed when shaking from damage
 #define NXFLAG_SLOW_Y_WHEN_HURT		0x0004	// move at half Y speed when shaking from damage
 #define NXFLAG_THUD_ON_RIDING		0x0008	// if set there is a "thud" sound when player lands on it
-#define NXFLAG_NO_DROP_POWERUPS		0x0010	// no powerups on death
-#define NXFLAG_NO_RESET_YINERTIA	0x0020	// don't zero yinertia on blocku/blockd
-#define NXFLAG_CONSOLE_ANIMATE		0x0040	// spawned at console and is implicit target of subsequent animate commands
+#define NXFLAG_NO_RESET_YINERTIA	0x0010	// don't zero yinertia on blocku/blockd
+#define NXFLAG_CONSOLE_ANIMATE		0x0020	// spawned at console and is implicit target of subsequent animate commands
 
 #define NXFLAG_SLOW_WHEN_HURT		(NXFLAG_SLOW_X_WHEN_HURT | NXFLAG_SLOW_Y_WHEN_HURT)
 

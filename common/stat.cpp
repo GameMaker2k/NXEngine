@@ -16,15 +16,13 @@ void SetLogFilename(const char *fname)
 {
 	maxcpy(logfilename, fname, sizeof(logfilename));
 	remove(logfilename);
-	
-	stat("Log set %d", time(NULL));
 }
 
 void writelog(const char *buf, bool append_cr)
 {
 FILE *fp;
 
-	fp = fopen(logfilename, "a+");
+	fp = fileopen(logfilename, "a+");
 	if (fp)
 	{
 		fputs(buf, fp);
@@ -74,16 +72,4 @@ char buffer[MAXBUFSIZE];
 	}
 }
 
-
-char *stprintf(const char *fmt, ...)
-{
-va_list ar;
-char *str = GetStaticStr();
-
-	va_start(ar, fmt);
-	vsnprintf(str, 255, fmt, ar);
-	va_end(ar);
-	
-	return str;
-}
 

@@ -1,8 +1,8 @@
 
 <DEFAULT
-COMPILE=g++ -g -O2 -c %SRCFILE% -D DEBUG `sdl-config --cflags` -Wreturn-type -Wunused-variable -Wno-multichar -o %MODULE%.%OBJ_EXT%
-LPREFIX=g++ -o %OUTPUT%
-LSUFFIX=`sdl-config --libs` -lSDL_ttf
+COMPILE=gcc -g -O2 -c %SRCFILE% -D DEBUG `sdl-config --cflags` -Wreturn-type -Wformat -Wno-multichar -o %MODULE%.%OBJ_EXT%
+LPREFIX=gcc -o %OUTPUT%
+LSUFFIX=`sdl-config --libs` -lSDL_ttf -lstdc++
 OBJ_EXT=o
 OUTPUT=nx
 
@@ -21,6 +21,8 @@ TextBox/StageSelect.cpp
 TextBox/SaveSelect.cpp
 profile.cpp
 settings.cpp
+platform.cpp
+platform/Linux/vbesync.c
 
 caret.cpp
 slope.cpp
@@ -127,6 +129,7 @@ graphics/sprites.cpp
 graphics/tileset.cpp
 graphics/font.cpp
 graphics/safemode.cpp
+graphics/palette.cpp
 
 sound/sound.cpp
 sound/sslib.cpp
@@ -148,6 +151,7 @@ autogen/AssignSprites.cpp
 autogen/objnames.cpp
 stagedata.cpp
 
+common/FileBuffer.cpp
 common/InitList.cpp
 common/BList.cpp
 common/StringList.cpp

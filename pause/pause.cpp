@@ -10,7 +10,7 @@ bool pause_init(int param)
 
 void pause_tick()
 {
-	FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0);
+	ClearScreen(BLACK);
 	
 	int cx = (SCREEN_WIDTH / 2) - (sprites[SPR_RESETPROMPT].w / 2);
 	int cy = (SCREEN_HEIGHT / 2) - (sprites[SPR_RESETPROMPT].h / 2);

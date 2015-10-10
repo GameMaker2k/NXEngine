@@ -38,7 +38,7 @@ const int smoke_amounts[] = { 0, 3, 7, 12 };
 const int nEntries = 361;
 int i;
 
-	FILE *fp = fopen("data/npc.tbl", "rb");
+	FILE *fp = fileopen("data/npc.tbl", "rb");
 	if (!fp) { staterr("load_npc_tbl: data/npc.tbl is missing"); return 1; }
 	
 	stat("Reading npc.tbl...");
@@ -56,8 +56,22 @@ int i;
 	for(i=0;i<nEntries;i++) objprop[i].xponkill = fgetl(fp);
 	for(i=0;i<nEntries;i++) objprop[i].damage = fgetl(fp);
 	
+	/*for(i=0;i<nEntries;i++)
+	{
+		int left = fgetc(fp);
+		int top = fgetc(fp);
+		int right = fgetc(fp);
+		int bottom = fgetc(fp);
+		
+		if (i == 59)
+		{
+			stat("%d %d %d %d", left, top, right, bottom);
+			stat("sprite %d", objprop[i].sprite);
+		}
+	}*/
+	
 	fclose(fp);
-	return 0;
+	return 0;//1;
 }
 
 /*

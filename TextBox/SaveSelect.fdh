@@ -7,6 +7,12 @@
 bool game_save(Profile *p);
 
 
+/* located in map.cpp */
+
+//--------------[referenced from TextBox/SaveSelect.cpp]-------------//
+const char *map_get_stage_name(int mapno);
+
+
 /* located in TextBox/SaveSelect.cpp */
 
 //--------------[referenced from TextBox/SaveSelect.cpp]-------------//
@@ -24,12 +30,6 @@ const char *GetProfileName(int num);
 
 //--------------[referenced from TextBox/SaveSelect.cpp]-------------//
 bool settings_save(Settings *setfile);
-
-
-/* located in map.cpp */
-
-//--------------[referenced from TextBox/SaveSelect.cpp]-------------//
-const char *map_get_stage_name(int mapno);
 
 
 /* located in player.cpp */

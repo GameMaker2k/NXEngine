@@ -5,8 +5,10 @@
 #include <SDL/SDL.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <sys/param.h>
+//#include <sys/param.h>
+//#include <limits.h>
 
+#include "config.h"
 #include "common/basics.h"
 #include "common/BList.h"
 #include "common/StringList.h"
@@ -31,6 +33,11 @@ using Tileset::draw_tile;
 
 #define CSF				9
 class Object;
+
+// don't use this, use fileopen() instead.
+// some platforms are retarded and need special workarounds (read: WinCE)
+#pragma	GCC poison		fopen
+FILE *fileopen(const char *fname, const char *mode);
 
 #include "trig.h"
 #include "autogen/sprites.h"
@@ -57,6 +64,7 @@ class Object;
 #include "player.h"
 #include "p_arms.h"
 #include "replay.h"
+#include "platform.h"
 
 #include "sound/sound.h"
 

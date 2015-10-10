@@ -1,8 +1,12 @@
 
 // graphics routines
 #include <SDL/SDL.h>
-#include <SDL/SDL_getenv.h>
+#ifndef __SDLSHIM__
+	#include <SDL/SDL_getenv.h>
+#endif
+
 #include <stdlib.h>
+#include "../config.h"
 #include "graphics.h"
 #include "tileset.h"
 #include "sprites.h"
@@ -11,7 +15,8 @@
 
 NXSurface *screen = NULL;				// created from SDL's screen
 static NXSurface *drawtarget = NULL;	// target of DrawRect etc; almost always screen
-int screen_bpp = 16;					// the default if we can't get video info
+bool use_palette = false;				// true if we are in an indexed-color video mode
+int screen_bpp;
 
 const NXColor DK_BLUE(0, 0, 0x21);		// the popular dk blue backdrop color
 const NXColor BLACK(0, 0, 0);			// pure black, only works if no colorkey
@@ -22,16 +27,29 @@ static int current_res = -1;
 
 bool Graphics::init(int resolution)
 {
-const SDL_VideoInfo *info;
-
-	// it's faster if we create the SDL screen at the bpp of the real screen.
-	// max fps went from 120 to 160 on my X11 system this way.
-	if ((info = SDL_GetVideoInfo()))
+	if (use_palette)
 	{
-		stat("videoinfo: desktop bpp %d", info->vfmt->BitsPerPixel);
-		if (info->vfmt->BitsPerPixel > 8)
-			screen_bpp = info->vfmt->BitsPerPixel;
+		screen_bpp = 8;
 	}
+	else
+	{
+		screen_bpp = 16;	// the default
+		
+		#ifndef __SDLSHIM__
+		const SDL_VideoInfo *info;
+		
+		// it's faster if we create the SDL screen at the bpp of the real screen.
+		// max fps went from 120 to 160 on my X11 system this way.
+		if ((info = SDL_GetVideoInfo()))
+		{
+			stat("videoinfo: desktop bpp %d", info->vfmt->BitsPerPixel);
+			if (info->vfmt->BitsPerPixel > 8)
+				screen_bpp = info->vfmt->BitsPerPixel;
+		}
+		#endif
+	}
+	
+	palette_reset();
 	
 	if (SetResolution(resolution, false))
 		return 1;
@@ -59,20 +77,28 @@ bool Graphics::InitVideo()
 {
 SDL_Surface *sdl_screen;
 
-	stat("Graphics::InitVideo");
 	if (drawtarget == screen) drawtarget = NULL;
 	if (screen) delete screen;
 	
-	uint32_t flags = SDL_SWSURFACE;
+	uint32_t flags = SDL_SWSURFACE | SDL_HWPALETTE;
 	if (is_fullscreen) flags |= SDL_FULLSCREEN;
 	
+	#ifndef __SDLSHIM__
 	putenv((char *)"SDL_VIDEO_CENTERED=1");
+	#endif
 	
+	stat("SDL_SetVideoMode: %dx%d @ %dbpp", SCREEN_WIDTH*SCALE, SCREEN_HEIGHT*SCALE, screen_bpp);
 	sdl_screen = SDL_SetVideoMode(SCREEN_WIDTH*SCALE, SCREEN_HEIGHT*SCALE, screen_bpp, flags);
 	if (!sdl_screen)
 	{
 		staterr("Graphics::InitVideo: error setting video mode");
 		return 1;
+	}
+	
+	if (use_palette && !(sdl_screen->flags & SDL_HWPALETTE))
+	{
+		staterr("Graphics::InitVideo: failed to obtain exclusive access to hardware palette");
+		exit(1);
 	}
 	
 	SDL_WM_SetCaption("NXEngine", NULL);
@@ -86,6 +112,7 @@ SDL_Surface *sdl_screen;
 bool Graphics::FlushAll()
 {
 	stat("Graphics::FlushAll()");
+	palette_reset();
 	Sprites::FlushSheets();
 	Tileset::Reload();
 	map_flush_graphics();
@@ -210,7 +237,7 @@ char fname[MAXPATHLEN];
 	int x = (SCREEN_WIDTH / 2) - (loading.Width() / 2);
 	int y = (SCREEN_HEIGHT / 2) - loading.Height();
 	
-	FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0);
+	ClearScreen(BLACK);
 	DrawSurface(&loading, x, y);
 	drawtarget->Flip();
 }
@@ -270,6 +297,11 @@ void Graphics::DrawPixel(int x, int y, NXColor color)
 	drawtarget->DrawPixel(x, y, color);
 }
 
+void Graphics::ClearScreen(NXColor color)
+{
+	drawtarget->Clear(color.r, color.g, color.b);
+}
+
 /*
 void c------------------------------() {}
 */
@@ -287,6 +319,11 @@ void Graphics::FillRect(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, ui
 void Graphics::DrawPixel(int x, int y, uint8_t r, uint8_t g, uint8_t b)
 {
 	drawtarget->DrawPixel(x, y, r, g, b);
+}
+
+void Graphics::ClearScreen(uint8_t r, uint8_t g, uint8_t b)
+{
+	drawtarget->Clear(r, g, b);
 }
 
 /*

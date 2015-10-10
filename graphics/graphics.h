@@ -11,6 +11,7 @@ extern NXSurface *screen;
 extern const NXColor DK_BLUE;
 extern const NXColor BLACK;
 extern const NXColor CLEAR;
+extern bool use_palette;
 
 namespace Graphics
 {
@@ -38,6 +39,10 @@ namespace Graphics
 	void BlitPatternAcross(NXSurface *sfc, int x_dst, int y_dst, int y_src, int height);
 	
 	
+	void ClearScreen(NXColor color);
+	void ClearScreen(uint8_t r, uint8_t g, uint8_t b);
+
+
 	void DrawRect(int x1, int y1, int x2, int y2, NXColor color);
 	void FillRect(int x1, int y1, int x2, int y2, NXColor color);
 	void DrawPixel(int x, int y, NXColor color);

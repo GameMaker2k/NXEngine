@@ -2,6 +2,7 @@
 #ifndef _SSLIB_H
 #define _SSLIB_H
 
+#define SAMPLE_RATE			22050
 #define MAX_QUEUED_CHUNKS		(180 +1)
 #define SS_NUM_CHANNELS			16
 

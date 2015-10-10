@@ -23,7 +23,7 @@ FILE *fp;
 	moveto(SM_UPPER_THIRD);
 	print("= Extracting Files =");
 	
-	fp = fopen(filename, "rb");
+	fp = fileopen(filename, "rb");
 	if (!fp)
 	{
 		moveto(SM_CENTER);
@@ -58,7 +58,12 @@ bool result;
 		return 1;
 	}
 	
+	result = introduction();
+	#ifndef __SDLSHIM__
 	if (introduction() == SDLK_ESCAPE)
+	#else
+	if (introduction() == SDLK_BTN1)
+	#endif
 	{
 		return 1;
 	}
@@ -85,7 +90,11 @@ int introduction()
 	print("Doukutsu.exe and it's \"data\" directory into the same");
 	print("folder as the \"nx\" program you just ran.");
 	print("");
+	#ifdef __SDLSHIM__
 	print("If you haven't done that yet, please press ESCAPE now");
+	#else
+	print("If you haven't done that yet, please press BTN1 now");
+	#endif
 	print("and come back in a moment. Otherwise, you can");
 	print("press any other key to start the extraction.");
 	
@@ -199,7 +208,7 @@ FILE *fpo;
 int len;
 uint32_t crc;
 
-	fpo = fopen("/tmp/files.dat", "wb");
+	fpo = fileopen("/tmp/files.dat", "wb");
 	crc_init();
 	
 	for(i=0;fileinfo[i].filename;i++)
@@ -238,7 +247,7 @@ uint8_t *buffer;
 uint32_t hit = 0;
 int len;
 
-	fp = fopen(fname, "rb");
+	fp = fileopen(fname, "rb");
 	if (!fp)
 	{
 		staterr("can't open %s", fname);

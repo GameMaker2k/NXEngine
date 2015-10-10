@@ -72,9 +72,9 @@ static int MnemonicToIndex(const char *str)
 {
 int l1, l2, l3;
 
-	l1 = letter_to_code[str[0]];
-	l2 = letter_to_code[str[1]];
-	l3 = letter_to_code[str[2]];
+	l1 = letter_to_code[(uint8_t)str[0]];
+	l2 = letter_to_code[(uint8_t)str[1]];
+	l3 = letter_to_code[(uint8_t)str[2]];
 	if (l1==0xff || l2==0xff || l3==0xff) return -1;
 	
 	return (l1 << 10) | (l2 << 5) | l3;
@@ -163,7 +163,7 @@ char *tsc_decrypt(const char *fname, int *fsize_out)
 FILE *fp;
 int fsize, i;
 
-	fp = fopen(fname, "rb");
+	fp = fileopen(fname, "rb");
 	if (!fp)
 	{
 		staterr("tsc_decrypt: no such file: '%s'!", fname);
@@ -205,6 +205,8 @@ const char *buf_end = (buf + (bufsize - 1));
 DBuffer *script = NULL;
 char cmdbuf[4] = { 0 };
 
+	//stat("<> tsc_compile bufsize = %d pageno = %d", bufsize, pageno);
+	
 	while(buf <= buf_end)
 	{
 		char ch = *(buf++);
@@ -272,7 +274,6 @@ char cmdbuf[4] = { 0 };
 		}
 		else if (script)
 		{	// text for message boxes
-			
 			buf--;
 			script->Append8(OP_TEXT);
 			ReadText(script, &buf, buf_end);
@@ -541,26 +542,30 @@ char debugbuffer[100];
 		{
 			s->nod_delay--;
 		}
-		else if (buttondown())
+		else
 		{
-			if (!s->keysdown)	// release nod
+			// if key was just pressed release nod.
+			// check them separately to allow holding X while
+			// tapping Z to keep text scrolling fast.
+			if ((inputs[JUMPKEY] && !s->lastjump) || \
+				(inputs[FIREKEY] && !s->lastfire))
 			{
 				// hide the fact that the key was just pushed
 				// so player doesn't jump/fire stupidly when dismissing textboxes
-				lastinputs[JUMPKEY] = true;
-				lastinputs[FIREKEY] = true;
-				lastpinputs[JUMPKEY] = true;
-				lastpinputs[FIREKEY] = true;
+				lastinputs[JUMPKEY] |= inputs[JUMPKEY];
+				lastinputs[FIREKEY] |= inputs[FIREKEY];
+				lastpinputs[JUMPKEY] |= inputs[JUMPKEY];
+				lastpinputs[FIREKEY] |= inputs[FIREKEY];
 				
 				s->waitforkey = false;
 				textbox.ShowCursor(false);
 			}
-		}
-		else
-		{
-			s->keysdown = false;
+			
+			s->lastjump = inputs[JUMPKEY];
+			s->lastfire = inputs[FIREKEY];
 		}
 		
+		// if still on return
 		if (s->waitforkey) return;
 	}
 	
@@ -586,6 +591,8 @@ char debugbuffer[100];
 		if (!player->blockd) return;
 		s->wait_standing = false;
 	}
+	
+	//stat("<> Entering script execution loop at ip = %d", s->ip);
 	
 	// main execution loop
 	for(;;)
@@ -971,16 +978,25 @@ char debugbuffer[100];
 			
 			case OP_TEXT:		// text to be displayed
 			{
+				stat("<> OP_TEXT 1");
 				str = (char *)&s->program[s->ip];
+				stat("<> OP_TEXT 2");
 				s->ip += (strlen(str) + 1);
+				stat("<> OP_TEXT 3, new ip = %d", s->ip);
 				
 				textbox.AddText(str);
+				
+				stat("<> OP_TEXT 4");
 				
 				// must yield execution, because the message is busy now.
 				// however, if the message contains only CR's, then we don't yield,
 				// because CR's take no time to display.
 				if (contains_non_cr(str))
+				{
+					stat("<> Pausing script execution because msg contains a CR.");
 					return;
+				}
+				stat("<> Textbox continues on...");
 			}
 			break;
 			
@@ -997,7 +1013,9 @@ char debugbuffer[100];
 				if (textbox.IsVisible())
 				{
 					s->waitforkey = true;	// pause exec till key pressed
-					s->keysdown = true;		// don't release immediately if key already down
+					// don't release immediately if keys already down
+					s->lastjump = true;
+					s->lastfire = true;
 					
 					textbox.ShowCursor(true);
 				}
@@ -1105,9 +1123,15 @@ char debugbuffer[100];
 			break;
 			
 			default:
-				console.Print("- unimplemented opcode %s; script %04d halted.", cmd_table[cmd].mnemonic, s->scriptno);
+			{
+				if (cmd < OP_COUNT)
+					console.Print("- unimplemented opcode %s; script %04d halted.", cmd_table[cmd].mnemonic, s->scriptno);
+				else
+					console.Print("- unimplemented opcode %02x; script %04d halted.", cmd, s->scriptno);
+				
 				StopScript(s);
 				return;
+			}
 		}
 	}
 }

@@ -1,6 +1,7 @@
 
-#include <stdarg.h>
 #include "nx.h"
+#include <stdarg.h>
+#include <unistd.h>
 #include "graphics/safemode.h"
 #include "main.fdh"
 
@@ -14,6 +15,7 @@ static int fps_so_far = 0;
 static uint32_t fpstimer = 0;
 
 #define GAME_WAIT			(1000/GAME_FPS)	// sets framerate
+#define VISFLAGS			(SDL_APPACTIVE | SDL_APPINPUTFOCUS)
 int framecount = 0;
 bool freezeframe = false;
 int flipacceltime = 0;
@@ -42,6 +44,10 @@ bool freshstart;
 	if (Graphics::init(settings->resolution)) { staterr("Failed to initilize graphics."); return 1; }
 	if (font_init()) { staterr("Failed to load font."); return 1; }
 	
+	//speed_test();
+	//return 1;
+	
+	#ifdef CONFIG_DATA_EXTRACTOR
 	if (!settings->files_extracted)
 	{
 		if (extract_main())
@@ -56,6 +62,7 @@ bool freshstart;
 			settings_save();
 		}
 	}
+	#endif
 	
 	if (check_data_exists())
 	{
@@ -78,8 +85,9 @@ bool freshstart;
 	//#define REPLAY
 	#ifdef REPLAY
 		game.switchstage.mapno = START_REPLAY;
-		Replay::set_ffwd(23400);
+		//Replay::set_ffwd(6000);
 		//Replay::set_stopat(3500);
+		game.switchstage.param = 1;
 	#else
 		//game.switchstage.mapno = LOAD_GAME;
 		//game.pause(GP_OPTIONS);
@@ -96,6 +104,15 @@ bool freshstart;
 	
 	game.running = true;
 	freshstart = true;
+	
+	stat("Entering main loop...");
+	#ifdef __SDLSHIM__
+		set_console_visible(false);
+	#endif
+	
+	//speed_test();
+	//return 1;
+	
 	while(game.running)
 	{
 		// SSS/SPS persists across stage transitions until explicitly
@@ -223,6 +240,13 @@ uint32_t gametimer;
 			{
 				gametimer += GAME_WAIT;
 			}
+			
+			// pause game if window minimized
+			if ((SDL_GetAppState() & VISFLAGS) != VISFLAGS)
+			{
+				AppMinimized();
+				gametimer = SDL_GetTicks();
+			}
 		}
 	}
 }
@@ -307,6 +331,7 @@ static int frameskip = 0;
 		
 		if (!flipacceltime)
 		{
+			//platform_sync_to_vblank();
 			screen->Flip();
 		}
 		else
@@ -380,6 +405,28 @@ void InitNewGame(bool with_intro)
 	fade.set_full(FADE_OUT);
 }
 
+
+void AppMinimized(void)
+{
+	stat("Game minimized or lost focus--pausing...");
+	SDL_PauseAudio(1);
+	
+	for(;;)
+	{
+		if ((SDL_GetAppState() & VISFLAGS) == VISFLAGS)
+		{
+			break;
+		}
+		
+		input_poll();
+		SDL_Delay(20);
+	}
+	
+	SDL_PauseAudio(0);
+	stat("Focus regained, resuming play...");
+}
+
+
 /*
 void c------------------------------() {}
 */
@@ -436,4 +483,128 @@ char buffer[80];
 	console.Print(buffer);
 }
 
+/*
+void c------------------------------() {}
+*/
 
+#ifdef __SDLSHIM__
+
+void speed_test(void)
+{
+	SDL_Rect textrect;
+	
+	uint32_t end = 0;
+	fps = 0;
+	
+	ClearScreen(255, 0, 0);
+	
+	game.running = true;
+	while(game.running)
+	{
+		if (SDL_GetTicks() >= end)
+		{
+			SDLS_VRAMSurface->h = 320;
+			SDLS_VRAMSurface->cliprect.h = 320;
+			textrect.x = 5;
+			textrect.y = 250;
+			textrect.w = 100;
+			textrect.h = 10;
+			SDL_FillRect(SDLS_VRAMSurface, &textrect, 0);
+			
+			char buffer[80];
+			sprintf(buffer, "%d fps ", fps);
+			direct_text_draw(5, 250, buffer);
+			SDLS_VRAMSurface->h = 240;
+			SDLS_VRAMSurface->cliprect.h = 240;
+			
+			input_poll();
+			
+			fps = 0;
+			end = SDL_GetTicks() + 1000;
+		}
+		
+		screen->Flip();
+		fps++;
+	}
+}
+
+#else
+
+void speed_test(void)
+{
+	SDL_Rect textrect;
+	SDL_Surface *vram = screen->GetSDLSurface();
+	int click = 0;
+	
+	uint32_t end = 0;
+	fps = 0;
+	
+	SDL_FillRect(vram, NULL, SDL_MapRGB(vram->format, 255, 0, 0));
+	int c = 0;
+	
+	game.running = true;
+	while(game.running)
+	{
+		//SDL_FillRect(vram, NULL, c ^= 255);
+		
+		if (SDL_GetTicks() >= end)
+		{
+			stat("%d fps", fps);
+			fps = 0;
+			end = SDL_GetTicks() + 1000;
+			
+			if (++click > 3)
+				break;
+		}
+		
+		screen->Flip();
+		fps++;
+	}
+}
+
+#endif
+
+
+
+void org_test_miniloop(void)
+{
+uint32_t start = 0, curtime;
+uint32_t counter;
+
+	stat("Starting org test");
+	
+	font_draw(5, 5, "ORG test in progress...", 0, &greenfont);
+	font_draw(5, 15, "Logging statistics to nx.log", 0, &greenfont);
+	font_draw(5, 25, "Press any button to quit", 0, &greenfont);
+	screen->Flip();
+	
+	music_set_enabled(1);
+	music(32);
+	
+	last_sdl_key = -1;
+	
+	for(;;)
+	{
+		org_run();
+		
+		if (++counter > 1024)
+		{
+			counter = 0;
+			
+			curtime = SDL_GetTicks();
+			if ((curtime - start) >= 100)
+			{
+				start = curtime;
+				input_poll();
+				
+				if (last_sdl_key != -1)
+					return;
+			}
+		}
+	}
+}
+
+void SDL_Delay(int ms)
+{
+	usleep(ms * 1000);
+}

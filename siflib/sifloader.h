@@ -28,7 +28,11 @@ enum
 	SIF_SECTION_SPRITES,				// main sprite array
 	SIF_SECTION_NAMES,					// names of sprites in array, minus the SPR_... prefix
 	SIF_SECTION_GROUPS,					// names of SIFEdit directories for grouping sprites
-	SIF_SECTION_COMMENTS				// SIFEdit comments about sprites
+	SIF_SECTION_COMMENTS,				// SIFEdit comments about sprites
+	SIF_SECTION_PATHS,					// things like base directory of sheets, for SIFEdit
+	SIF_SECTION_DIRNAMES,				// names/order of the SIFDir directions
+	
+	SIF_SECTION_COUNT
 };
 
 

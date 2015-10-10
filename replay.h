@@ -2,9 +2,12 @@
 #ifndef _REPLAY_H
 #define _REPLAY_H
 
+#include "common/FileBuffer.h"
 #define MAX_REPLAYS				8	// how many automatic replays to save
 
-
+#define REC_OK		0
+#define REC_ERR		1
+#define REC_END		2
 struct ReplayHeader
 {
 	uint16_t magick;
@@ -19,9 +22,10 @@ struct ReplayHeader
 struct ReplayRecording
 {
 	ReplayHeader hdr;
+	FileBuffer fb;
 	
 	uint32_t lastkeys;
-	int runlength;
+	uint32_t runlength;
 	FILE *fp;
 };
 
@@ -30,8 +34,9 @@ struct ReplayPlaying
 	ReplayHeader hdr;
 	
 	uint32_t keys;
-	int runlength;
+	uint32_t runlength;
 	int elapsed_frames;
+	int elapsed_records;
 	FILE *fp;
 	
 	int ffwdto, ffwd_accel;

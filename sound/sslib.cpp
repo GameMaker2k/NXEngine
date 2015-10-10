@@ -3,7 +3,6 @@
 // more or less, my own version of SDL_mixer
 
 #include <SDL/SDL.h>
-#include <SDL/SDL_audio.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -26,7 +25,7 @@ char SSInit(void)
 SDL_AudioSpec fmt, obtained;
 
 	// Set 16-bit stereo audio at 22Khz
-	fmt.freq = 22050;
+	fmt.freq = SAMPLE_RATE;
 	fmt.format = AUDIO_S16;
 	fmt.channels = 2;
 	fmt.samples = 512;
@@ -323,7 +322,7 @@ static int AddBuffer(SSChannel *chan, int bytes)
 }
 
 
-static void mixaudio(void *unused, Uint8 *stream, int len)
+static void mixaudio(void *unused, uint8_t *stream, int len)
 {
 int bytes_copied;
 int bytestogo;

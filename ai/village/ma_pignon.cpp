@@ -434,7 +434,6 @@ void ai_ma_pignon_clone(Object *o)
 	{
 		case 0:
 		{
-			o->nxflags |= NXFLAG_NO_DROP_POWERUPS;
 			o->frame = 3;
 			o->yinertia += 0x80;
 			LIMITY(0x5ff);

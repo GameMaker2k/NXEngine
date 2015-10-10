@@ -7,12 +7,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../config.h"
 #include "pxt.h"
 #include "sslib.h"
 
 #include "pxt.fdh"
 
 #define MODEL_SIZE			256
+#define PXCACHE_MAGICK		'PXC1'
 
 // gets the next byte from wave "wave", scales it by the waves volume, and places result in "out".
 // x * (y / z) = (x * y) / z
@@ -695,6 +697,10 @@ int malc_size;
 		value = buffer[i];
 		value *= 200;
 		
+		#ifdef CONFIG_BIG_ENDIAN
+			value = (value << 8) | (value >> 8);
+		#endif
+		
 		outbuffer[ap++] = value;		// left ch
 		outbuffer[ap++] = value;		// right ch
 	}
@@ -707,8 +713,8 @@ int malc_size;
 
 // quick-and-dirty function to raise or lower the pitch of a sound.
 // I say quick-and-dirty because it also changes the length.
-// We need this for the "SSS" (Stream Sound) which is supposed to have
-// adjustable pitch.
+// We need this for the "SSS" (Stream Sound) which is supposed to
+// have adjustable pitch.
 void pxt_ChangePitch(stPXSound *snd, double factor)
 {
 signed char *inbuffer = snd->final_buffer;
@@ -832,14 +838,15 @@ FILE *fp = NULL;
 			return 0;
 		}
 		
-		fp = fopen(cache_name, "wb");
+		fp = fileopen(cache_name, "wb");
 		if (!fp)
 		{
 			staterr("LoadSoundFX: failed open: '%s'", cache_name);
 			return 1;
 		}
 		
-		fputl('PXC1', fp);
+		uint32_t magick = PXCACHE_MAGICK;
+		fwrite(&magick, 4, 1, fp);	// fwrite allows us to verify endianness, as well
 		fputi(top, fp);
 	}
 	
@@ -851,7 +858,6 @@ FILE *fp = NULL;
 		sprintf(fname, "%sfx%02x.pxt", path, slot);
 		
 		if (pxt_load(fname, &snd)) continue;
-		
 		pxt_Render(&snd);
 		
 		// dirty hack; lower the pitch of the Stream Sounds
@@ -891,18 +897,23 @@ static char LoadFXCache(const char *fname, int top)
 {
 FILE *fp;
 int slot;
+uint32_t magick;
 stPXSound snd;
 
-	fp = fopen(fname, "rb");
+	fp = fileopen(fname, "rb");
 	if (!fp)
 	{
 		stat("LoadFXCache: audio cache %s not exist", fname);
 		return 1;
 	}
 	
-	if (fgetl(fp) != 'PXC1')
+	// I don't use endian-agnostic fgetl as this file is endian-specific and we
+	// want the check to fail if the file were moved from a little-endian to
+	// big-endian system or vice-versa.
+	fread(&magick, sizeof(magick), 1, fp);
+	if (magick != PXCACHE_MAGICK)
 	{
-		stat("LoadFXCache: %s is incorrect format", fname);
+		stat("LoadFXCache: %s is incorrect format: expected %08x, got %08x", fname, PXCACHE_MAGICK, magick);
 		fclose(fp);
 		return 1;
 	}
@@ -1026,14 +1037,13 @@ void FreePXTBuf(stPXSound *snd)
 char pxt_load(const char *fname, stPXSound *snd)
 {
 FILE *fp;
-char ch;
-char cc;
-int i;
 char load_extended_section = 0;
+char ch;
+int i, cc;
 
 #define BRACK		'{'		// my damn IDE is borking up the Function List if i put this inline
 
-	fp = fopen(fname, "rb");
+	fp = fileopen(fname, "rb");
 	if (!fp) { staterr("pxt_load: file '%s' not found.", fname); return 1; }
 	
 	//lprintf("pxt_load: reading %s...\n", fname);
@@ -1155,7 +1165,7 @@ char pxt_save(const char *fname, stPXSound *snd)
 FILE *fp;
 int i, j;
 
-	fp = fopen(fname, "wb");
+	fp = fileopen(fname, "wb");
 	if (!fp)
 	{
 		stat("save_pxt: unable to open '%s'", fname);

@@ -2,7 +2,7 @@
 #ifndef _SIF_H
 #define _SIF_H
 
-#include "../common/stat.fdh"
+#include "../common/misc.fdh"	// stprintf
 
 // a sprite has certain settings global to the whole sprite.
 // each sprite also contains a certain number of frames.
@@ -179,6 +179,7 @@ struct SIFFrame
 struct SIFSprite
 {
 	void Init();
+	void Zero();
 	void FreeData();
 	
 	void AddFrame(SIFFrame *newframe);

@@ -33,7 +33,7 @@ void ai_spur_shot(Object *o)
 	}
 	
 	Object *enemy;
-	if (enemy = damage_enemies(o))
+	if ((enemy = damage_enemies(o)))
 	{
 		o->shot.damage--;
 		

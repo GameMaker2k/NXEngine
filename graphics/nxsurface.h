@@ -5,8 +5,12 @@
 #include <SDL/SDL.h>
 #include "../common/basics.h"
 
-// how much to scale the graphics
-extern int SCALE;
+// scaling factor for the graphics
+#ifdef CONFIG_MUTABLE_SCALE
+	extern int SCALE;
+#else
+	#define SCALE		1
+#endif
 
 struct NXSurface;
 extern NXSurface *screen;
@@ -78,6 +82,7 @@ public:
 	void FillRect(int x1, int y1, int x2, int y2, NXColor color);
 	void FillRect(NXRect *rect, uint8_t r, uint8_t g, uint8_t b);
 	void FillRect(NXRect *rect, NXColor color);
+	void Clear(uint8_t r, uint8_t g, uint8_t b);
 	
 	void DrawPixel(int x, int y, uint8_t r, uint8_t g, uint8_t b);
 	void DrawPixel(int x, int y, NXColor color);
@@ -100,9 +105,6 @@ public:
 private:
 	static SDL_Surface *Scale(SDL_Surface *original, int factor, bool use_colorkey, bool free_original, bool use_display_format);
 	static void Scale8(SDL_Surface *src, SDL_Surface *dst, int factor);
-	
-	static inline uint32_t getpixel(SDL_Surface *surface, int x, int y);
-	static inline void putpixel(SDL_Surface *surface, int x, int y, uint32_t pixel);
 	
 	inline uint32_t MapColor(uint8_t r, uint8_t g, uint8_t b);
 	void Free();

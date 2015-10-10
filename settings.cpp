@@ -1,9 +1,9 @@
 
+#include <SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <sys/param.h>
 #include "settings.h"
 #include "replay.h"
 #include "settings.fdh"
@@ -37,7 +37,7 @@ bool settings_load(Settings *setfile)
 		setfile->emulate_bugs = false;
 		setfile->no_quake_in_hell = false;
 		setfile->inhibit_fullscreen = false;
-		setfile->files_extracted = false;
+		setfile->files_extracted = true;
 		
 		// I found that 8bpp->32bpp blits are actually noticably faster
 		// than 32bpp->32bpp blits on several systems I tested. Not sure why
@@ -50,7 +50,12 @@ bool settings_load(Settings *setfile)
 	}
 	else
 	{
-		input_set_mappings(settings->input_mappings);
+		#ifndef __SDLSHIM__
+			input_set_mappings(settings->input_mappings);
+		#else
+			stat("settings_load(): Hey FIXME!!!");
+			settings->show_fps = true;
+		#endif
 	}
 	
 	return 0;
@@ -66,7 +71,7 @@ FILE *fp;
 
 	stat("Loading settings...");
 	
-	fp = fopen(setfilename, "rb");
+	fp = fileopen(setfilename, "rb");
 	if (!fp)
 	{
 		stat("Couldn't open file %s.", setfilename);
@@ -94,7 +99,7 @@ FILE *fp;
 		setfile = &normal_settings;
 	
 	stat("Writing settings...");
-	fp = fopen(setfilename, "wb");
+	fp = fileopen(setfilename, "wb");
 	if (!fp)
 	{
 		stat("Couldn't open file %s.", setfilename);

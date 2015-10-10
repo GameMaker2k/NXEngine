@@ -18,7 +18,7 @@ uint32_t *result = (uint32_t *)buffer;
 int i, j;
 
 	const char *fname = getfname();
-	fp = fopen(fname, "rb");
+	fp = fileopen(fname, "rb");
 	if (!fp)
 	{
 		stat("niku_load: couldn't open file '%s'", fname);
@@ -87,7 +87,7 @@ uint32_t *buf_dword = (uint32_t *)buf_byte;
 	}
 	
 	const char *fname = getfname();
-	FILE *fp = fopen(fname, "wb");
+	FILE *fp = fileopen(fname, "wb");
 	if (!fp)
 	{
 		staterr("niku_save: failed to open '%s'", fname);

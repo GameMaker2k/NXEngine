@@ -24,7 +24,7 @@ void intro_tick()
 {
 	if (blanktimer > 0)
 	{
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0);
+		ClearScreen(BLACK);
 		
 		if (--blanktimer == 0)
 			game.setmode(GM_TITLE);

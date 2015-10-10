@@ -673,7 +673,7 @@ static void PFireSpur(void)
 // fires and handles charged shots
 static void PHandleSpur(void)
 {
-static const int FLASH_TIME = 8;
+static const int FLASH_TIME = 10;
 Weapon *spur = &player->weapons[WPN_SPUR];
 
 	if (player->curWeapon != WPN_SPUR)

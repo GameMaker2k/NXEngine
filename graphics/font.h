@@ -20,11 +20,19 @@ class NXFont
 public:
 	NXFont();
 	~NXFont();
+	
 	bool InitChars(TTF_Font *font, uint32_t color);
 	bool InitCharsShadowed(TTF_Font *top, uint32_t color, uint32_t shadowcolor);
+	
+	bool InitBitmapChars(SDL_Surface *sheet, uint32_t fgcolor, uint32_t color);
+	bool InitBitmapCharsShadowed(SDL_Surface *sheet, uint32_t fgcolor, uint32_t color, uint32_t shadowcolor);
+	
 	void free();
 	
 	SDL_Surface *letters[NUM_FONT_LETTERS];
+
+private:
+	void ReplaceColor(SDL_Surface *sfc, uint32_t oldcolor, uint32_t newcolor);
 };
 
 

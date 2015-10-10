@@ -37,7 +37,7 @@ void SE_FlashScreen::Draw(void)
 	}
 	
 	if (flashstate)
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xff,0xff,0xff);
+		ClearScreen(0xff, 0xff, 0xff);
 }
 
 /*
@@ -181,7 +181,7 @@ int x, y;
 	}
 	else if (state == FS_FADED_OUT)
 	{
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0x21);
+		ClearScreen(DK_BLUE);
 		return;
 	}
 	

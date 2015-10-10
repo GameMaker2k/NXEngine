@@ -14,8 +14,12 @@ struct ScriptInstance
 	int pageno;							// ScriptPage/namespace # script is in
 	
 	int delaytimer;						// time left on a <WAI delay
-	bool waitforkey, keysdown;			// used with <NOD
+	
+	// used with <NOD
+	bool waitforkey;
+	bool lastjump, lastfire;
 	int nod_delay;
+	
 	int ynj_jump;						// if != -1, a Yes/No choice is up, and this is the event # to jump to if they pick No.
 	
 	bool wait_standing;					// if 1 pauses script until player touches ground

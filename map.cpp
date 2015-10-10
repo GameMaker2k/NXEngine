@@ -28,6 +28,13 @@ char fname[MAXPATHLEN];
 
 	stat(" >> Entering stage %d: '%s'.", stage_no, stages[stage_no].stagename);
 	game.curmap = stage_no;		// do it now so onspawn events will have it
+	
+	if (use_palette)
+	{
+		palette_reset();
+		Sprites::FlushSheets();
+		map_flush_graphics();
+	}
 
 	if (Tileset::Load(stages[stage_no].tileset))
 		return 1;
@@ -66,7 +73,7 @@ bool load_map(const char *fname)
 FILE *fp;
 int x, y;
 
-	fp = fopen(fname, "rb");
+	fp = fileopen(fname, "rb");
 	if (!fp)
 	{
 		staterr("load_map: no such file: '%s'", fname);
@@ -125,7 +132,7 @@ int nEntities;
 	
 	stat("load_entities: reading in %s", fname);
 	// now we can load in the new objects
-	fp = fopen(fname, "rb");
+	fp = fileopen(fname, "rb");
 	if (!fp)
 	{
 		staterr("load_entities: no such file: '%s'", fname);
@@ -237,7 +244,7 @@ unsigned char tc;
 	map.nmotiontiles = 0;
 	
 	stat("load_pxa: reading in %s", fname);
-	fp = fopen(fname, "rb");
+	fp = fileopen(fname, "rb");
 	if (!fp)
 	{
 		staterr("load_pxa: no such file: '%s'", fname);
@@ -276,7 +283,7 @@ bool load_stages(void)
 {
 FILE *fp;
 
-	fp = fopen("stage.dat", "rb");
+	fp = fileopen("stage.dat", "rb");
 	if (!fp)
 	{
 		staterr("%s(%d): failed to open stage.dat", __FILE__, __LINE__);
@@ -298,7 +305,7 @@ FILE *fp;
 int i;
 
 	stat("initmapfirsttime: loading tilekey.dat.");
-	if (!(fp = fopen("tilekey.dat", "rb")))
+	if (!(fp = fileopen("tilekey.dat", "rb")))
 	{
 		staterr("tilekey.dat is missing!");
 		return 1;
@@ -375,9 +382,9 @@ int x, y;
 		case BK_HIDE3:
 		{
 			if (game.curmap == STAGE_KINGS)		// intro cutscene
-				FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+				ClearScreen(BLACK);
 			else
-				FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, DK_BLUE);
+				ClearScreen(DK_BLUE);
 		}
 		return;
 		
@@ -530,11 +537,13 @@ int scroll_x, scroll_y;
 	blit_y = -(scroll_y % TILE_H);
 	blit_x_start = -(scroll_x % TILE_W);
 	
-	for(y=0; y <= (SCREEN_HEIGHT / TILE_H); y++)
+	// MAP_DRAW_EXTRA_Y etc is 1 if resolution is changed to
+	// something not a multiple of TILE_H.
+	for(y=0; y <= (SCREEN_HEIGHT / TILE_H)+MAP_DRAW_EXTRA_Y; y++)
 	{
 		blit_x = blit_x_start;
 		
-		for(x=0; x <= (SCREEN_WIDTH / TILE_W); x++)
+		for(x=0; x <= (SCREEN_WIDTH / TILE_W)+MAP_DRAW_EXTRA_X; x++)
 		{
 			int t = map.tiles[mapx+x][mapy+y];
 			if ((tileattr[t] & TA_FOREGROUND) == foreground)

@@ -10,10 +10,16 @@
 #include "sectStringArray.h"
 #include "sif.fdh"
 
-// safely make all vars sane while still staying POD
+// safely make some vars sane while still staying POD
 void SIFSprite::Init()
 {
 	frame = NULL;
+}
+
+// completely zero ALL vars
+void SIFSprite::Zero()
+{
+	memset(this, 0, sizeof(SIFSprite));
 }
 
 void SIFSprite::FreeData()

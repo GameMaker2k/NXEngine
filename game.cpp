@@ -252,8 +252,9 @@ void game_tick_normal(void)
 Object *o;
 
 	player->riding = NULL;
+	player->bopped_object = NULL;
 	Objects::UpdateBlockStates();
-	
+
 	if (!game.frozen)
 	{
 		// run AI for player and stageboss first
@@ -274,7 +275,7 @@ Object *o;
 				o->OnAftermove();
 		}
 	}
-	
+
 	// important to put this before and not after DrawScene(), or non-existant objects
 	// can wind up in the onscreen_objects[] array, and blow up the program on the next tick.
 	Objects::CullDeleted();
@@ -326,7 +327,7 @@ void DrawScene(void)
 {
 int scr_x, scr_y;
 extern int flipacceltime;
-
+	
 	// sporidically-used animated tile feature,
 	// e.g. water currents in Waterway
 	if (map.nmotiontiles)
@@ -684,7 +685,6 @@ void AssignExtraSprites(void)
 	objprop[OBJ_POOH_BLACK_DYING].sprite = SPR_POOH_BLACK;
 	
 	objprop[OBJ_BOOSTER_FALLING].sprite = SPR_PROFESSOR_BOOSTER;
-	objprop[OBJ_DRAGON_ZOMBIE_SHOT].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
 	
 	objprop[OBJ_MIMIGA_FARMER_STANDING].sprite = SPR_MIMIGA_FARMER;
 	objprop[OBJ_MIMIGA_FARMER_WALKING].sprite = SPR_MIMIGA_FARMER;
@@ -693,10 +693,9 @@ void AssignExtraSprites(void)
 	objprop[OBJ_MA_PIGNON_CLONE].sprite = SPR_MA_PIGNON;
 	
 	objprop[OBJ_DOCTOR_SHOT_TRAIL].sprite = SPR_DOCTOR_SHOT;
-	objprop[OBJ_DOCTOR_BAT].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
 	
-	// they can still detect when they touch floor; etc, but we don't
-	// want say a falling one to get blocked by the ceiling.
+	// they're still able to detect when they touch floor; etc,
+	// but we don't want say a falling one to get blocked by the ceiling.
 	objprop[OBJ_RED_ENERGY].defaultflags |= FLAG_IGNORE_SOLID;
 	
 	objprop[OBJ_SUE_TELEPORT_IN].sprite = SPR_SUE;
@@ -704,22 +703,7 @@ void AssignExtraSprites(void)
 	objprop[OBJ_MISERY_BAT].sprite = SPR_ORANGE_BAT_FINAL;
 	objprop[OBJ_UD_MINICORE_IDLE].sprite = SPR_UD_MINICORE;
 	
-	objprop[OBJ_BALLOS_BONE].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
 	objprop[OBJ_WHIMSICAL_STAR].sprite = SPR_WHIMSICAL_STAR;	// for bbox only, object is invisible
-	
-	objprop[OBJ_BALROG_SHOT_BOUNCE].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
-	objprop[OBJ_BALFROG_SHOT].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
-	objprop[OBJ_X_FISHY_MISSILE].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
-	objprop[OBJ_MISERY_MISSILE].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
-	objprop[OBJ_GAUDI_FLYING_SHOT].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
-	objprop[OBJ_IGOR_SHOT].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
-	objprop[OBJ_SKELETON_SHOT].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
-	objprop[OBJ_GIANT_BEETLE_SHOT].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
-	objprop[OBJ_MANNAN_SHOT].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
-	objprop[OBJ_CRITTER_SHOT].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
-	objprop[OBJ_MISERY_SHOT].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
-	objprop[OBJ_BALROG_MISSILE].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
-	objprop[OBJ_BUYOBUYO].defaultnxflags |= NXFLAG_NO_DROP_POWERUPS;
 	
 	// these are set by AI; this is just to silence unimplemented object warnings
 	#ifdef DEBUG

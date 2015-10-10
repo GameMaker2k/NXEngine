@@ -203,11 +203,11 @@ int xinertia, yinertia;
 			{
 				o->PushPlayerOutOfWay(xinertia, yinertia);
 			}
-			else
+			else if (o->damage > 0)
 			{
 				// have enemies hurt you when you touch them
 				// (solid-brick objects do this in PHandleSolidBrickObjects)
-				if (o->damage > 0 && hitdetect(o, player))
+				if (hitdetect(o, player))
 					o->DealContactDamage();
 			}
 		}

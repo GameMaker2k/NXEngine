@@ -34,7 +34,7 @@ bool StringList::ContainsString(const char *term)
 int i;
 char *str;
 
-	for(i=0; str = StringAt(i); i++)
+	for(i=0; (str = StringAt(i)); i++)
 	{
 		if (!strcmp(str, term))
 			return true;
@@ -48,7 +48,7 @@ bool StringList::ContainsCaseString(const char *term)
 int i;
 char *str;
 
-	for(i=0; str = StringAt(i); i++)
+	for(i=0; (str = StringAt(i)); i++)
 	{
 		if (!strcasecmp(str, term))
 			return true;
@@ -95,7 +95,7 @@ void StringList::RemoveString(const char *str)
 int i;
 char *entry;
 
-	for(i=0; entry = StringAt(i); i++)
+	for(i=0; (entry = StringAt(i)); i++)
 	{
 		if (!strcmp(entry, str))
 		{
@@ -111,7 +111,7 @@ void StringList::RemoveIString(const char *str)
 int i;
 char *entry;
 
-	for(i=0; entry = StringAt(i); i++)
+	for(i=0; (entry = StringAt(i)); i++)
 	{
 		if (!strcasecmp(entry, str))
 		{

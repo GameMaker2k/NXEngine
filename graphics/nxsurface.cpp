@@ -1,10 +1,14 @@
 
 #include <string.h>
 #include "../settings.h"
+#include "../config.h"
+#include "graphics.h"
 #include "nxsurface.h"
 #include "nxsurface.fdh"
 
-int SCALE = 3;
+#ifdef CONFIG_MUTABLE_SCALE
+	int SCALE = 3;
+#endif
 
 
 NXSurface::NXSurface()
@@ -36,7 +40,11 @@ NXSurface::~NXSurface()
 // static function, and requires a reload of all surfaces
 void NXSurface::SetScale(int factor)
 {
-	SCALE = factor;
+	#ifdef CONFIG_MUTABLE_SCALE
+		SCALE = factor;
+	#else
+		staterr("NXSurface::SetScale: CONFIG_MUTABLE_SCALE not set");
+	#endif
 }
 
 /*
@@ -198,6 +206,11 @@ SDL_Rect rect;
 	SDL_FillRect(fSurface, &rect, MapColor(r, g, b));
 }
 
+void NXSurface::Clear(uint8_t r, uint8_t g, uint8_t b)
+{
+	SDL_FillRect(fSurface, NULL, MapColor(r, g, b));
+}
+
 
 void NXSurface::DrawPixel(int x, int y, uint8_t r, uint8_t g, uint8_t b)
 {
@@ -308,6 +321,13 @@ SDL_Surface *scaled;
 		SDL_SetColorKey(scaled, SDL_SRCCOLORKEY, SDL_MapRGB(scaled->format, 0, 0, 0));
 	}
 	
+	if (use_palette)
+	{
+		scaled = palette_add(scaled);
+		if (!scaled)
+			return NULL;
+	}
+	
 	if (use_display_format)
 	{
 		SDL_Surface *ret_sfc = SDL_DisplayFormat(scaled);
@@ -345,71 +365,6 @@ int x, y, i;
 		}
 	}
 }
-
-
-uint32_t NXSurface::getpixel(SDL_Surface *surface, int x, int y)
-{
-	int bpp = surface->format->BytesPerPixel;
-	uint8_t *p = (uint8_t *)surface->pixels + y * surface->pitch + x * bpp;
-	
-	switch(bpp)
-	{
-		case 1:
-			return *p;
-		
-		case 2:
-			return *(uint16_t *)p;
-		
-		case 3:
-			if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-				return p[0] << 16 | p[1] << 8 | p[2];
-			else
-				return p[0] | p[1] << 8 | p[2] << 16;
-		
-		case 4:
-			return *(uint32_t *)p;
-    }
-}
-
-
-void NXSurface::putpixel(SDL_Surface *surface, int x, int y, uint32_t color)
-{
-	int bpp = surface->format->BytesPerPixel;
-	uint8_t *p = (uint8_t *)surface->pixels + y * surface->pitch + x * bpp;
-	
-	switch(bpp)
-	{
-		case 1:
-			*p = (uint8_t)color;
-		break;
-		
-		case 2:
-			*(uint16_t *)p = (uint16_t)color;
-		break;
-		
-		case 3:
-		{
-			if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-			{
-				p[0] = (uint8_t)((color >> 16) & 0xff);
-				p[1] = (uint8_t)((color >> 8) & 0xff);
-				p[2] = (uint8_t)(color & 0xff);
-			}
-			else
-			{
-				p[0] = (uint8_t)(color & 0xff);
-				p[1] = (uint8_t)((color >> 8) & 0xff);
-				p[2] = (uint8_t)((color >> 16) & 0xff);
-			}
-		}
-		break;
-		
-		case 4:
-			*(uint32_t *)p = color;
-		break;
-	}
-}
-
 
 /*
 void c------------------------------() {}

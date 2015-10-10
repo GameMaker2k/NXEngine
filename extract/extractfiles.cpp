@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
 #include <sys/stat.h>
+#include "../common/basics.h"
 #include "../graphics/safemode.h"
 #include "extractfiles.fdh"
 
@@ -151,22 +151,48 @@ bool first_crc_failure = true;
 			{
 				status("File '%s' failed CRC check.", outfilename);
 				print("");
-				print("[I]gnore");
-				print("Ignore [A]ll");
-				print("[S]top");
 				
-				switch(run_until_key(first_crc_failure))
+				#ifndef __SDLSHIM__
+					print("[I]gnore");
+					print("Ignore [A]ll");
+					print("[S]top");
+					#define IGNORE_BTN		SDLK_i
+					#define IGNORE_ALL_BTN	SDLK_a
+					#define STOP_BTN		SDLK_s
+				#else
+					print("B1 - Ignore");
+					print("B2 - Ignore All");
+					print("B3 - Stop");
+					#define IGNORE_BTN		SDLK_BTN1
+					#define IGNORE_ALL_BTN	SDLK_BTN2
+					#define STOP_BTN		SDLK_BTN3
+				#endif
+				
+				for(;;)
 				{
-					case SDLK_a:
-						check_crc = false;
-					break;
-					
-					case SDLK_s:
-					case SDLK_ESCAPE:
+					switch(run_until_key(first_crc_failure))
 					{
-						free(buffer);
-						return 1;
+						case IGNORE_BTN:
+						break;
+						
+						case IGNORE_ALL_BTN:
+							check_crc = false;
+						break;
+						
+						#ifndef __SDLSHIM__
+						case SDLK_ESCAPE:
+						#endif
+						case STOP_BTN:
+						{
+							free(buffer);
+							return 1;
+						}
+						
+						default:
+						continue;
 					}
+					
+					break;
 				}
 				
 				first_crc_failure = false;
@@ -176,7 +202,7 @@ bool first_crc_failure = true;
 		// write out the file
 		createdir(outfilename);
 		
-		FILE *fp = fopen(outfilename, "wb");
+		FILE *fp = fileopen(outfilename, "wb");
 		if (!fp)
 		{
 			status("Failed to open '%s' for writing.", outfilename);

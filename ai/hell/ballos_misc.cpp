@@ -141,6 +141,7 @@ void ai_green_devil(Object *o)
 			o->flags |= FLAG_SHOOTABLE;
 			o->ymark = o->y;
 			o->yinertia = random(-5<<CSF, 5<<CSF);
+			o->damage = 3;
 			o->state = 1;
 		}
 		case 1:

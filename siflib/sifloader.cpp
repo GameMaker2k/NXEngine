@@ -54,11 +54,12 @@ void c------------------------------() {}
 bool SIFLoader::LoadHeader(const char *filename)
 {
 FILE *fp;
+uint32_t magick;
 
 	ClearIndex();
 	
 	if (fFP) fclose(fFP);
-	fp = fFP = fopen(filename, "rb");
+	fp = fFP = fileopen(filename, "rb");
 	
 	if (!fp)
 	{
@@ -66,9 +67,10 @@ FILE *fp;
 		return 1;
 	}
 	
-	if (fgetl(fp) != SIF_MAGICK)
+	if ((magick = fgetl(fp)) != SIF_MAGICK)
 	{
 		staterr("SIFLoader::LoadHeader: magick check failed--this isn't a SIF file or is wrong version?");
+		staterr(" (expected %08x, got %08x)", SIF_MAGICK, magick);
 		return 1;
 	}
 	
@@ -161,7 +163,7 @@ bool SIFLoader::EndSave(const char *filename)
 {
 FILE *fp;
 
-	fp = fopen(filename, "wb");
+	fp = fileopen(filename, "wb");
 	if (!fp)
 	{
 		stat("SIFLoader::EndSave: failed to open '%s' for writing", filename);

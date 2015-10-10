@@ -6,7 +6,7 @@
 #include "replay.fdh"
 using namespace Replay;
 
-#define REPLAY_MAGICK		0xC321
+#define REPLAY_MAGICK		0xC322
 static ReplayRecording rec;
 static ReplayPlaying play;
 
@@ -32,7 +32,7 @@ Profile profile;
 	if (game_save(&profile)) return 1;
 	if (profile_save(fname, &profile)) return 1;
 	
-	fp = fopen(fname, "r+");
+	fp = fileopen(fname, "r+");
 	if (!fp)
 	{
 		staterr("begin_record: failed to open file %s", fname);
@@ -54,6 +54,10 @@ Profile profile;
 	rec.fp = fp;
 	seedrand(rec.hdr.randseed);
 	
+	fputl('MARK', fp);
+	rec.fb.SetFile(fp);
+	rec.fb.SetBufferSize(256);
+	rec.fb.Dump();
 	return 0;
 }
 
@@ -63,9 +67,13 @@ bool Replay::end_record()
 		return 1;
 	
 	// flush final RLE run
-	fputl(rec.lastkeys, rec.fp);
-	fputl(rec.runlength, rec.fp);
+	write_record(rec.lastkeys, rec.runlength, &rec.fb);
 	rec.runlength = 0;
+	rec.fb.Flush();
+	rec.fb.SetFile(NULL);
+	
+	fputc('!', rec.fp);
+	fputl('STOP', rec.fp);
 	
 	// go back and save the header again so we have total_frames correct.
 	fseek(rec.fp, PROFILE_LENGTH, SEEK_SET);
@@ -95,7 +103,7 @@ Profile profile;
 	if (profile_load(fname, &profile))
 		return 1;
 	
-	fp = fopen(fname, "rb");
+	fp = fileopen(fname, "rb");
 	if (!fp)
 	{
 		staterr("begin_playback: failed to open file %s", fname);
@@ -120,6 +128,12 @@ Profile profile;
 	game_load(&profile);
 	seedrand(play.hdr.randseed);
 	
+	if (fgetl(fp) != 'MARK')
+	{
+		console.Print("Replay fail MARK");
+		return 1;
+	}
+	
 	// debug stuff for replaying at startup from main.cpp
 	play.ffwdto = next_ffwdto;
 	next_ffwdto = 0;
@@ -131,6 +145,7 @@ Profile profile;
 	next_accel = 0;
 	
 	play.fp = fp;
+//	dump_replay();
 	return 0;
 }
 
@@ -183,9 +198,7 @@ void Replay::run_record()
 	{
 		if (rec.runlength != 0)
 		{
-			fputl(rec.lastkeys, rec.fp);
-			fputl(rec.runlength, rec.fp);
-			
+			write_record(rec.lastkeys, rec.runlength, &rec.fb);
 			rec.runlength = 0;
 		}
 		
@@ -215,17 +228,23 @@ static void Replay::run_playback()
 	// RLE decoding
 	if (play.runlength == 0)
 	{
-		play.keys = fgetl(play.fp);
-		play.runlength = fgetl(play.fp);
-		
-		if (feof(play.fp))
+		if (read_record(&play.keys, &play.runlength, play.fp))
 		{
 			end_playback();
 			play.keys = 0;
+			return;
 		}
+		
+		play.elapsed_records++;
 	}
 	
 	play.runlength--;
+	
+	debug("keys: %08x", play.keys);
+	debug("runlength: %d", play.runlength);
+	debug("frame: %d", play.elapsed_frames);
+	debug("record: %d", play.elapsed_records);
+	//debug("frames left: %d", (play.hdr.total_frames - play.elapsed_frames));
 	
 	bool keys[INPUT_COUNT];
 	DecodeBits(play.keys, keys, INPUT_COUNT);
@@ -245,6 +264,57 @@ static void Replay::run_playback()
 		int key = list[i];
 		inputs[key] = keys[key];
 	}
+	
+	return;
+}
+
+/*
+void c------------------------------() {}
+*/
+
+static void write_record(uint32_t keys, uint32_t runlength, FileBuffer *fb)
+{
+	fb->Write8('[');
+	fb->Write32(keys);
+	fb->Write8(':');
+	fb->Write32(runlength);
+	fb->Write8(']');
+}
+
+static bool read_record(uint32_t *keys, uint32_t *runlength, FILE *fp)
+{
+	char ch = fgetc(fp);
+	if (ch == '!') return REC_END;
+	
+	if (feof(fp))
+	{
+		console.Print("unexpected end of file");
+		return REC_ERR;
+	}
+	
+	if (ch != '[')
+	{
+		console.Print("replay field fail [");
+		return REC_ERR;
+	}
+	
+	*keys = fgetl(fp);
+	
+	if (fgetc(fp) != ':')
+	{
+		console.Print("replay field fail :");
+		return REC_ERR;
+	}
+	
+	*runlength = fgetl(fp);
+	
+	if (fgetc(fp) != ']')
+	{
+		console.Print("replay field fail ]");
+		return REC_ERR;
+	}
+	
+	return REC_OK;
 }
 
 /*
@@ -421,7 +491,7 @@ bool Replay::LoadHeader(const char *fname, ReplayHeader *hdr)
 {
 FILE *fp;
 
-	fp = fopen(fname, "rb");
+	fp = fileopen(fname, "rb");
 	if (!fp)
 	{
 		staterr("LoadHeader: can't open file '%s'", fname);
@@ -439,7 +509,7 @@ bool Replay::SaveHeader(const char *fname, ReplayHeader *hdr)
 {
 FILE *fp;
 
-	fp = fopen(fname, "r+");
+	fp = fileopen(fname, "r+");
 	if (!fp)
 	{
 		staterr("SaveHeader: can't open file '%s'", fname);
@@ -559,7 +629,91 @@ int i;
 	}
 }
 
+/*
+void c------------------------------() {}
+*/
 
-
+static void dump_replay()
+{
+	stat("=== Header ===");
+	stat("magick: %04x (%s)", play.hdr.magick, (play.hdr.magick == REPLAY_MAGICK) ? "correct" : "not correct");
+	stat("randseed: %08x", play.hdr.randseed);
+	stat("locked: %d", play.hdr.locked);
+	stat("total_frames: %d (%d secs)", play.hdr.total_frames, play.hdr.total_frames / 50);
+	stat("stageno: %d (%s)", play.hdr.stageno, map_get_stage_name(play.hdr.stageno));
+	stat("createstamp: %010llx", play.hdr.createstamp);
+	stat("=== End Header ===");
+	stat("");
+	
+	stat("resolution: %d", play.hdr.settings.resolution);
+	stat("last_save_slot: %d", play.hdr.settings.last_save_slot);
+	stat("multisave: %d", play.hdr.settings.multisave);
+	/*int resolution;
+	int last_save_slot;
+	bool multisave;
+	bool files_extracted;
+	bool show_fps;
+	bool displayformat;
+	
+	bool enable_debug_keys;
+	bool sound_enabled;
+	int music_enabled;
+	
+	bool instant_quit;
+	bool emulate_bugs;
+	bool no_quake_in_hell;
+	bool inhibit_fullscreen;
+	
+	bool skip_intro;*/
+	
+	//exit(1);
+	
+	/*stat("Inputs:");
+	for(int i=0;i<INPUT_COUNT;i++)
+	{
+		stat("  %08x  %08x", play.hdr.settings.input_mappings[i], input_get_mapping(i));
+	}*/
+	
+	fseek(play.fp, ftell(play.fp) - 0x2b, SEEK_SET);	// 0x6a9
+	stat("First Read %08x", fgetl(play.fp));
+	stat("Starting read at offset %04x", ftell(play.fp));
+	//exit(1);
+	
+	//exit(1);
+	//int offset = 1;
+	//fseek(play.fp, ftell(play.fp)+offset, SEEK_SET);
+	
+	int total_frames = 0;
+	int record = 0;
+	uint32_t lastkeys = 0xffffffff;
+	while(!feof(play.fp))
+	{
+		uint32_t keys = fgetl(play.fp);
+		uint32_t runlength = fgetl(play.fp);
+		if (runlength == 0xffffffff || feof(play.fp)) break;
+		total_frames += runlength;
+		
+		stat("%04d  len %08x:  keys %08x     offset %08x", record++, runlength, keys, ftell(play.fp)-8);
+		
+		if (keys == lastkeys)
+		{
+			staterr(" -- impossible key repeat");
+			if (runlength < 0x200000) break;
+		}
+		
+		if (runlength >= 0x200000)
+		{
+			staterr(" -- bogus runlength %08x", runlength);
+			break;
+		}
+		
+		lastkeys = keys;
+	}
+	
+	//total_frames--;
+	stat("total frames count: %d", total_frames);
+	stat("frames reported: %d", play.hdr.total_frames);
+	exit(1);
+}
 
 

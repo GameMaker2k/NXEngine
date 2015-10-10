@@ -57,7 +57,7 @@ void ai_blade_l3_shot(Object *o)
 			if (o->timer2 >= 5)
 			{
 				Object *enemy;
-				if (enemy = damage_enemies(o))
+				if ((enemy = damage_enemies(o)))
 				{
 					if (enemy->flags & FLAG_INVULNERABLE)
 					{

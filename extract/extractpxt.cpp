@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <sys/param.h>
 #include "../graphics/safemode.h"
+#include "../common/basics.h"
 #include "extractpxt.fdh"
 
 using safemode::moveto;
@@ -159,7 +159,7 @@ int s, c, i;
 		sprintf(outfilename, "pxt/fx%02x.pxt", snd[s].id);
 		status("[ %s ]", outfilename);
 		
-		FILE *fpo = fopen(outfilename, "wb");
+		FILE *fpo = fileopen(outfilename, "wb");
 		if (!fpo)
 		{
 			status("failed to open %s", outfilename);

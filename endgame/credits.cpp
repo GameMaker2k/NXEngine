@@ -17,6 +17,7 @@ bool Credits::Init()
 {
 	if (script.OpenFile()) return 1;
 	if (bigimage.Init()) return 1;
+	Replay::end_record();
 	
 	spawn_y = (SCREEN_HEIGHT + 8);
 	scroll_y = 0 << CSF;
@@ -213,7 +214,7 @@ CredLine *line, *next;
 			delete line;
 		}
 		
-		line = line->next;
+		line = next;
 	}
 }
 

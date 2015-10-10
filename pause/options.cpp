@@ -66,7 +66,7 @@ FocusHolder *fh;
 		return;
 	}
 	
-	FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0);
+	ClearScreen(BLACK);
 	Options::run_and_draw_objects();
 	
 	fh = optionstack.ItemAt(optionstack.CountItems() - 1);
@@ -270,7 +270,7 @@ bool have_replays = false;
 
 	dlg->Clear();
 	sound(SND_MENU_MOVE);
-
+	
 	for(int i=0;i<MAX_REPLAYS;i++)
 	{
 		Replay::GetSlotInfo(i, &slot);
@@ -295,7 +295,7 @@ void _upd_replay(ODItem *item)
 ReplaySlotInfo slot;
 
 	Replay::GetSlotInfo(item->id, &slot);
-
+	
 	Replay::FramesToTime(slot.hdr.total_frames, &item->raligntext[1]);
 	item->raligntext[0] = (slot.hdr.locked) ? '=':' ';
 }
@@ -381,7 +381,7 @@ Dialog *dlg = opt.dlg;
 	dlg->AddItem("Wpn Next", _edit_control, _upd_control, NEXTWPNKEY);
 	dlg->AddItem("Inventory", _edit_control, _upd_control, INVENTORYKEY);
 	dlg->AddItem("Map", _edit_control, _upd_control, MAPSYSTEMKEY);
-
+	
 	dlg->AddSeparator();
 	dlg->AddDismissalItem();
 }
@@ -419,7 +419,7 @@ int i;
 		sound(SND_MENU_MOVE);
 		return;
 	}
-
+	
 	// check if key is already in use
 	for(i=0;i<INPUT_COUNT;i++)
 	{

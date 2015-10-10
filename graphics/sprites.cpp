@@ -244,6 +244,7 @@ int sheetdatalength, spritesdatalength;
 	create_slope_boxes();
 	offset_by_draw_points();
 	expand_single_dir_sprites();
+	
 	return 0;
 }
 

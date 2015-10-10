@@ -63,12 +63,12 @@ void sound(int snd);
 /* located in common/stat.cpp */
 
 //---------------------[referenced from debug.cpp]-------------------//
-char *stprintf(const char *fmt, ...);
 void stat(const char *fmt, ...);
 
 
 /* located in common/misc.cpp */
 
 //---------------------[referenced from debug.cpp]-------------------//
+char *stprintf(const char *fmt, ...);
 bool strbegin(const char *bigstr, const char *smallstr);
 

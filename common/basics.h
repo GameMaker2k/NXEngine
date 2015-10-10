@@ -3,8 +3,19 @@
 #define _BASICS_H
 
 #include <stdint.h>
-#include <sys/param.h>	// MAXPATHLEN
+
+#ifdef __clang__
+	#define MAXPATHLEN	256
+#else
+	#include <sys/param.h>	// MAXPATHLEN
+#endif
+
+#ifndef PATH_MAX
+	#define PATH_MAX	259
+#endif
+
 typedef unsigned char		uchar;
+
 
 void stat(const char *fmt, ...);
 void staterr(const char *fmt, ...);
@@ -12,7 +23,8 @@ void staterr(const char *fmt, ...);
 {	\
 	if (!(X))	\
 	{	\
-		staterr("** ASSERTION FAILED: '%s' at %s(%d)", #X, __FILE__, __LINE__);	\
+		staterr("** ASSERT FAILED: '%s' at %s(%d)", #X, __FILE__, __LINE__);	\
+		exit(1); 	\
 	}	\
 }
 

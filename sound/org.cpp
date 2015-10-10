@@ -8,6 +8,7 @@
 #include "../common/basics.h"
 #include "org.h"
 #include "pxt.h"			// for loading drums
+#include "sslib.h"			// SAMPLE_RATE
 #include "org.fdh"
 
 //#define QUIET
@@ -37,7 +38,7 @@ static struct
 	int firstbeat;				// beat # of the first beat contained in this chunk
 } final_buffer[2];
 
-static char current_buffer;
+static uint8_t current_buffer;
 static bool buffers_full;
 
 static int OrgVolume;
@@ -93,13 +94,13 @@ static double GetNoteSampleRate(int note, int instrument_pitch)
 // converts a time in milliseconds to that same time length in samples
 static int MSToSamples(int ms)
 {
-	return (int)(((double)22050 / (double)1000) * (double)ms);
+	return (int)(((double)SAMPLE_RATE / (double)1000) * (double)ms);
 }
 
 // converts a sample length to milliseconds
 static int SamplesToMS(int samples)
 {
-	return (int)(((double)samples * 1000) / 22050);
+	return (int)(((double)samples * 1000) / SAMPLE_RATE);
 }
 
 
@@ -119,7 +120,7 @@ static const char *drum_cache = "drum.pcm";
 	#else
 		
 		// try and load the drums from cache instead of synthing them
-		fp = fopen(drum_cache, "rb");
+		fp = fileopen(drum_cache, "rb");
 		if (fp)
 		{
 			for(d=0;d<NUM_DRUMS;d++)
@@ -147,7 +148,7 @@ static const char *drum_cache = "drum.pcm";
 		}
 		
 		// cache the drums for next time
-		fp = fopen(drum_cache, "wb");
+		fp = fileopen(drum_cache, "wb");
 		if (fp)
 		{
 			for(d=0;d<NUM_DRUMS;d++)
@@ -253,7 +254,7 @@ FILE *fp;
 signed char buffer[BUF_SIZE + 1];
 signed char *ptr;
 
-	fp = fopen(fname, "rb");
+	fp = fileopen(fname, "rb");
 	if (!fp)
 	{
 		stat("Unable to open wavetable.dat!!");
@@ -323,7 +324,7 @@ char buf[8];
 FILE *fp;
 int i, j;
 
-	fp = fopen(fname, "rb");
+	fp = fileopen(fname, "rb");
 	if (!fp) { visible_warning("org_load: no such file: '%s'", fname); return 1; }
 	
 	for(i=0;i<6;i++) { buf[i] = fgetc(fp); } buf[i] = 0;
@@ -574,7 +575,6 @@ static void runfade()
 void c------------------------------() {}
 */
 
-
 // combines all of the individual channel output buffers into a single, final, buffer.
 static void mix_buffers(void)
 {
@@ -588,6 +588,7 @@ signed short *final;
 	len = buffer_samples * 2;
 	final = final_buffer[current_buffer].samples;
 	
+	//stat("mixing %d samples", len);
 	for(cursample=0;cursample<len;cursample++)
 	{
 		// first mix instruments
@@ -768,7 +769,6 @@ double iratio;
 		chan->phaseacc += chan->sample_inc;
 		if ((int)chan->phaseacc >= 256) chan->phaseacc -= 256;
 	}
-
 }
 
 
@@ -844,6 +844,8 @@ int i;
 	volume_right_ratio = chan->volume_right_ratio;
 	wave = chan->wave;
 	
+	//stat("drum_gen(%d, %d)", m_channel, num_samples);
+	
 	// generate the drum sound
 	for(i=0;i<num_samples;i++)
 	{
@@ -879,9 +881,8 @@ void org_run(void)
 	// generate more music for it and queue it back on.
 	if (!buffers_full)
 	{
-		//stat("-- Buffering %d beats", buffer_beats);
-		
 		generate_music();				// generate more music into current_buffer
+		
 		queue_final_buffer();			// enqueue current_buffer and switch buffers
 		buffers_full = true;			// both buffers full again until OrgBufferFinished called
 	}
@@ -897,6 +898,8 @@ int m;
 int beats_left;
 int out_position;
 
+	//stat("generate_music: cb=%d buffer_beats=%d", current_buffer, buffer_beats);
+	
 	// save beat # of the first beat in buffer for calculating current beat for TrackFuncs
 	final_buffer[current_buffer].firstbeat = song.beat;
 	

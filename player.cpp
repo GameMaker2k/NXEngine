@@ -195,6 +195,7 @@ void HandlePlayer_am(void)
 	//debug("booststate: %d", player->booststate);
 	//debug("y: %d", player->y>>CSF);
 	//debug("riding %x", player->riding);
+	//debug("block: %d%d%d%d", player->blockl, player->blockr, player->blocku, player->blockd);
 	
 	// if player is riding some sort of platform apply it's inertia to him
 	if (player->riding)
@@ -233,7 +234,11 @@ void HandlePlayer_am(void)
 		{
 			player->yinertia = 0x200;
 		}
-		else if (player->blocku != BLOCKED_OBJECT)
+		else if (player->bopped_object && player->bopped_object->yinertia != 0)
+		{
+			// no clear yinertia when bop head on OBJ_BLOCK_MOVEV in labyrinth.
+		}
+		else
 		{
 			player->yinertia = 0;
 		}
@@ -432,7 +437,7 @@ int tile;
 	attr |= (player->GetAttributes(&pattrpoints[1], 1, &tile) & ~TA_WATER);
 	
 	if (attr & TA_HURTS_PLAYER)
-		hurtplayer(10, true);
+		hurtplayer(10);
 	
 	// water current/wind:
 	// for water currents--get the sum total of several points on the player to see
@@ -537,17 +542,33 @@ int limit;
 		// always move towards zero at decelspeed
 		if (player->xinertia > 0)
 		{
-			if (player->xinertia > player->decelspeed)
-				player->xinertia -= player->decelspeed;
-			else
+			if (player->blockr && !pinputs[RIGHTKEY])
+			{
 				player->xinertia = 0;
+			}
+			else if (player->xinertia > player->decelspeed)
+			{
+				player->xinertia -= player->decelspeed;
+			}
+			else
+			{
+				player->xinertia = 0;
+			}
 		}
 		else if (player->xinertia < 0)
 		{
-			if (player->xinertia < -player->decelspeed)
-				player->xinertia += player->decelspeed;
-			else
+			if (player->blockl && !pinputs[LEFTKEY])
+			{
 				player->xinertia = 0;
+			}
+			else if (player->xinertia < -player->decelspeed)
+			{
+				player->xinertia += player->decelspeed;
+			}
+			else
+			{
+				player->xinertia = 0;
+			}
 		}
 	}
 	else		// deceleration in air...
@@ -1142,16 +1163,13 @@ void c------------------------------() {}
 // does "damage" points of damage to the player
 // if even_if_controls_locked is true the damage is
 // dealt even if the player's input is locked.
-void hurtplayer(int damage, bool even_if_controls_locked)
+void hurtplayer(int damage)
 {
 	if (damage == 0) return;
 	if (!player || !player->hp) return;
 	if (settings->enable_debug_keys && (game.debug.god || inputs[DEBUG_MOVE_KEY])) return;
 	
 	if (player->hurt_time)
-		return;
-	
-	if (player->inputs_locked && !even_if_controls_locked)
 		return;
 	
 	if (player->hide)

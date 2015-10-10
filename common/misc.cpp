@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <math.h>
 #include <ctype.h>
 
@@ -11,28 +12,36 @@
 
 void stat(const char *fmt, ...);
 
-unsigned short fgeti(FILE *fp)
+uint16_t fgeti(FILE *fp)
 {
-unsigned short value;
-	fread(&value, 2, 1, fp);
-	return value;
+uint16_t a, b;
+	a = fgetc(fp);
+	b = fgetc(fp);
+	return (b << 8) | a;
 }
 
-unsigned int fgetl(FILE *fp)
+uint32_t fgetl(FILE *fp)
 {
-unsigned int value;
-	fread(&value, 4, 1, fp);
-	return value;
+uint32_t a, b, c, d;
+	a = fgetc(fp);
+	b = fgetc(fp);
+	c = fgetc(fp);
+	d = fgetc(fp);
+	return (d<<24)|(c<<16)|(b<<8)|(a);
 }
 
-void fputi(unsigned short word, FILE *fp)
+void fputi(uint16_t word, FILE *fp)
 {
-	fwrite(&word, 2, 1, fp);
+	fputc(word, fp);
+	fputc(word >> 8, fp);
 }
 
-void fputl(unsigned int word, FILE *fp)
+void fputl(uint32_t word, FILE *fp)
 {
-	fwrite(&word, 4, 1, fp);
+	fputc(word, fp);
+	fputc(word >> 8, fp);
+	fputc(word >> 16, fp);
+	fputc(word >> 24, fp);
 }
 
 
@@ -83,7 +92,7 @@ int i;
 }
 
 // write a string to a file and null-terminate it
-void fputstring(char *buf, FILE *fp)
+void fputstring(const char *buf, FILE *fp)
 {
 	if (buf[0]) fprintf(fp, "%s", buf);
 	fputc(0, fp);
@@ -183,10 +192,23 @@ int cp, sz;
 bool file_exists(const char *fname)
 {
 FILE *fp;
-	fp = fopen(fname, "rb");
+
+	fp = fileopen(fname, "rb");
 	if (!fp) return 0;
 	fclose(fp);
 	return 1;
+}
+
+char *stprintf(const char *fmt, ...)
+{
+va_list ar;
+char *str = GetStaticStr();
+
+	va_start(ar, fmt);
+	vsnprintf(str, 255, fmt, ar);
+	va_end(ar);
+	
+	return str;
 }
 
 /*

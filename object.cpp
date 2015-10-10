@@ -321,13 +321,13 @@ int mask = GetBlockingType();
 	if (updatemask & UPMASK)
 	{
 		o->blocku = CheckAttribute(&sprite->block_u, mask);
-		if (!o->blocku) o->blocku = CheckBoppedHeadOnSlope(o);
+		if (!o->blocku) o->blocku = CheckBoppedHeadOnSlope(o) ? 1 : 0;
 	}
 	
 	if (updatemask & DOWNMASK)
 	{
 		o->blockd = CheckAttribute(&sprite->block_d, mask);
-		if (!o->blockd) o->blockd = CheckStandOnSlope(o);
+		if (!o->blockd) o->blockd = CheckStandOnSlope(o) ? 1 : 0;
 	}
 	
 	// have player be blocked by objects with FLAG_SOLID_BRICK set
@@ -376,6 +376,9 @@ Object *o;
 			{
 				this->blocku = BLOCKED_OBJECT;
 				updatemask &= ~UPMASK;
+				
+				if (this == player)
+					player->bopped_object = o;
 			}
 		}
 		
@@ -543,7 +546,7 @@ Object * const &o = this;
 			{	// pushing player right
 				if (player->blockr)
 				{	// squish!
-					hurtplayer(o->smushdamage, true);
+					hurtplayer(o->smushdamage);
 				}
 				else
 				{
@@ -560,7 +563,7 @@ Object * const &o = this;
 			{	// pushing player left
 				if (player->blockl)
 				{	// squish!
-					hurtplayer(o->smushdamage, true);
+					hurtplayer(o->smushdamage);
 				}
 				else
 				{
@@ -579,7 +582,7 @@ Object * const &o = this;
 	if (yinertia < 0)
 	{
 		if (player->blocku && player->riding == o)	// smushed into ceiling!
-			hurtplayer(o->smushdamage, true);
+			hurtplayer(o->smushdamage);
 	}
 	else if (yinertia > 0)	// object heading downwards?
 	{
@@ -599,7 +602,7 @@ Object * const &o = this;
 			if (yinertia >= player->yinertia)
 			{
 				if (player->blockd)		// squished into floor!
-					hurtplayer(o->smushdamage, true);
+					hurtplayer(o->smushdamage);
 				
 				// align his blocku grid with our bottom side
 				player->y = o->SolidBottom() - (sprites[player->sprite].block_u[0].y << CSF);
@@ -703,9 +706,7 @@ Object * const &o = this;
 		}
 		else
 		{
-			if (!(o->nxflags & NXFLAG_NO_DROP_POWERUPS))
-				SpawnPowerups();
-			
+			SpawnPowerups();
 			o->Delete();
 		}
 	}
@@ -717,6 +718,9 @@ void Object::SpawnPowerups()
 {
 Object * const &o = this;
 int objectType, bonusType;
+
+	if (!objprop[o->type].xponkill)
+		return;
 
 	bonusType = random(1, 5);
 	if (bonusType >= 3)
@@ -837,6 +841,10 @@ void Object::DealContactDamage()
 {
 Object * const &o = this;
 
+	// no contact damage to player while scripts running
+	if (GetCurrentScript() != -1 || player->inputs_locked)
+		return;
+	
 	if (!(o->flags & FLAG_NOREARTOPATTACK))
 	{
 		hurtplayer(o->damage);

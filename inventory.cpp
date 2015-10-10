@@ -5,8 +5,8 @@
 #include "inventory.h"
 #include "inventory.fdh"
 
-#define ARMS_X		10
-#define ARMS_Y		8
+#define ARMS_X			10
+#define ARMS_Y			8
 
 #define ITEMS_X			10
 #define ITEMS_Y			60
@@ -76,10 +76,10 @@ int curwpn = 0;
 	if (game.mode != GM_INVENTORY)
 		return 0;
 	
-	inv.x = 38;
-	inv.y = 8;
 	inv.w = 244;
 	inv.h = 152;
+	inv.x = (SCREEN_WIDTH / 2) - (inv.w / 2);
+	inv.y = 8;
 	
 	// find current weapon and count # items for armssel selector
 	inv.armssel.items[0] = 0;		// show "no weapon" in case of no weapon

@@ -35,31 +35,6 @@
 
 #define MAX_SONG_LENGTH		5000		// max song length to allocate for, in notes
 
-struct stNote
-{
-	int beat;			// beat no. that note starts on
-	uchar note;			// 00 - 5F, starts on a C
-	uchar length;		// in beats
-	uchar volume;		// 00 - F8
-	uchar panning;		// 00 - 0C
-};
-
-// keeps track of instrument settings for a track
-struct stInstrument
-{
-	int pitch;
-	int wave;				// which wave (00-99) to use
-	// if pi is set all notes on the channel play for 1024 samples regardless
-	// of length or tempo settings. pi only has meaning on the instrument tracks.
-	char pi;
-	
-	int curnote;			// current note (during playback)
-	int loop_note;			// used when looping back to the beginning of a song at beat loop_end
-	
-	int nnotes;
-	stNote note[MAX_SONG_LENGTH];
-};
-
 
 // this handles the actual synthesis
 struct stNoteChannel
@@ -86,11 +61,30 @@ struct stNoteChannel
 };
 
 
-// "event" parameters sent to TrackFunc
-#define TF_CHANGE_BEAT		0				// cur_beat is now the currently playing beat
-#define TF_SONG_START		2				// org_start was called
-#define TF_SONG_STOP		3				// org_stop was called
-#define TF_SONG_RESUME		4				// org_resume was called
+struct stNote
+{
+	int beat;			// beat no. that note starts on
+	uchar note;			// 00 - 5F, starts on a C
+	uchar length;		// in beats
+	uchar volume;		// 00 - F8
+	uchar panning;		// 00 - 0C
+};
+
+// keeps track of instrument settings for a track
+struct stInstrument
+{
+	int pitch;
+	int wave;				// which wave (00-99) to use
+	// if pi is set all notes on the channel play for 1024 samples regardless
+	// of length or tempo settings. pi only has meaning on the instrument tracks.
+	bool pi;
+	
+	int curnote;			// current note (during playback)
+	int loop_note;			// used when looping back to the beginning of a song at beat loop_end
+	
+	int nnotes;
+	stNote note[MAX_SONG_LENGTH];
+};
 
 struct stSong
 {

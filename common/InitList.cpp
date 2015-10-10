@@ -1,4 +1,11 @@
 
+// this is a combination of some C++ and preprocessor magic which allows a
+// group of initilization functions to be declared across many different
+// source files and then at the appropriate time all can be called at once.
+// The "trick" is that it automatically works for all modules linked to the
+// program so you don't have to keep a handmade list anywhere of the names
+// of the initilization functions. This is used by the AI functions to initilize
+// all the function pointers etc for the various creatures.
 #include "InitList.h"
 #include "InitList.fdh"
 
@@ -16,24 +23,9 @@ void InitList::AddFunction(void *func)
 {
 	//stat("AddFunction (void)%08x [%d]", func, fCount);
 	if (fCount >= MAX_INIT_RECORDS)
-	{
-		fCount++;
 		return;
-	}
 	
-	InitRecord *init = new InitRecord;
-	{
-		init->func = (void *)func;
-		init->returns_value = false;
-	}
-	
-	fFunctions[fCount++] = init;
-}
-
-InitList::~InitList()
-{
-	for(int i=0;i<fCount;i++)
-		delete fFunctions[i];
+	fFunctions[fCount++] = (void *)func;
 }
 
 /*
@@ -42,54 +34,23 @@ void c------------------------------() {}
 
 bool InitList::CallFunctions()
 {
-	if (fCount > MAX_INIT_RECORDS)
+int i;
+
+	if (fCount >= MAX_INIT_RECORDS)
 	{
 		stat("InitList::CallFunctions(%08x): too many initilizers", this);
 		return 1;
 	}
 	
 	stat("InitList::CallFunctions(%08x): executing %d functions...", this, fCount);
-	
-	for(int i=0;i<fCount;i++)
+
+	for(i=0;i<fCount;i++)
 	{
-		if (fFunctions[i]->returns_value)
-		{
-			bool (*func)(void) = (bool (*)())fFunctions[i]->func;
-			if ((*func)())
-				return 1;
-		}
-		else
-		{
-			void (*func)(void) = (void (*)())fFunctions[i]->func;
-			(*func)();
-		}
+		void (*func)(void) = (void (*)())fFunctions[i];
+		(*func)();
 	}
 	
 	return 0;
-}
-
-/*
-void c------------------------------() {}
-*/
-
-InitAdder::InitAdder(InitList *initlist, void (*func)(void))
-{
-	initlist->AddFunction(func);
-}
-
-InitAdder::InitAdder(InitList *initlist, bool (*func)(void))
-{
-	initlist->AddFunction(func);
-}
-
-InitAdder::InitAdder(InitList &initlist, void (*func)(void))
-{
-	initlist.AddFunction(func);
-}
-
-InitAdder::InitAdder(InitList &initlist, bool (*func)(void))
-{
-	initlist.AddFunction(func);
 }
 
 

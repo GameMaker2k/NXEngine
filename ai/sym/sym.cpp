@@ -728,7 +728,7 @@ void ai_terminal(Object *o)
 		case 0:
 		case 1:
 			o->frame = 0;
-			if (pdistlx(0x1000) && pdistly2(0x2000, 0x1000))
+			if (pdistlx(8<<CSF) && pdistly2(16<<CSF, 8<<CSF))
 			{
 				sound(SND_COMPUTER_BEEP);
 				o->frame = 1;
@@ -737,7 +737,7 @@ void ai_terminal(Object *o)
 		break;
 		
 		case 10:
-			o->frame ^= 1;
+			ANIMATE(0, 1, 2);
 		break;
 	}
 }

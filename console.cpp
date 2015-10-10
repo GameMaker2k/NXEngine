@@ -114,6 +114,8 @@ bool DebugConsole::HandleKey(int key)
 		fRepeatTimer = 1;
 	}
 	
+	fCursorTimer = 0;
+
 	switch(key)
 	{
 		case 27:

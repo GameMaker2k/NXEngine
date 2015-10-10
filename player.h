@@ -55,6 +55,8 @@ public:
 	// This is used when a platform you are riding tries to push you into the ceiling
 	// and so the engine deals with it by having you fall through the platform instead.
 	Object *cannotride;
+	// object if any that caused player's blocku to be set
+	Object *bopped_object;
 	
 	// <UNI mode--used with Ironhead battle
 	int movementmode;
@@ -129,9 +131,7 @@ enum BoosterState
 #define EQUIP_WHIMSTAR		0x80
 #define EQUIP_NIKUMARU		0x100
 
-void hurtplayer(int damage, bool even_if_controls_locked = false);
 void AddXP(int xp, bool quiet = false);
 void SubXP(int xp, bool quiet = false);
-
 
 #endif

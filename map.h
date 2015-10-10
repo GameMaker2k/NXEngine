@@ -107,4 +107,17 @@ void map_ChangeTileWithSmoke(int x, int y, int newtile, int nclouds=4, bool boom
 // backdrop and tileset names
 #include "stagedata.h"
 
+// needed if resolution is changed to a non-multiple of the tile size
+#if (((SCREEN_WIDTH / TILE_W) * TILE_W) != SCREEN_WIDTH)
+	#define MAP_DRAW_EXTRA_X	1
+#else
+	#define MAP_DRAW_EXTRA_X	0
+#endif
+
+#if (((SCREEN_HEIGHT / TILE_H) * TILE_H) != SCREEN_HEIGHT)
+	#define MAP_DRAW_EXTRA_Y	1
+#else
+	#define MAP_DRAW_EXTRA_Y	0
+#endif
+
 #endif

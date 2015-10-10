@@ -32,7 +32,7 @@ int i, f, nsprites;
 		return 1;
 	}
 	
-	//stat("SIFSpritesSect: loading %d sprites", nsprites);
+	stat("SIFSpritesSect: loading %d sprites", nsprites);
 	for(i=0;i<nsprites;i++)
 	{
 		if (data > data_end)
@@ -76,7 +76,6 @@ int i, f, nsprites;
 				return 1;
 		}
 	}
-	
 	
 	return 0;
 }
@@ -254,7 +253,6 @@ void SIFSpritesSect::SaveOptionalRect(int type, SIFRect *rect, DBuffer *out)
 		SaveRect(rect, out);
 	}
 }
-
 
 
 

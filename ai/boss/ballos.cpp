@@ -42,6 +42,8 @@ enum BS_STATES
 
 INITFUNC(AIRoutines)
 {
+	ONDEATH(OBJ_BALLOS_MAIN, ondeath_ballos);
+
 	ONTICK(OBJ_BALLOS_ROTATOR, ai_ballos_rotator);
 	AFTERMOVE(OBJ_BALLOS_ROTATOR, aftermove_ballos_rotator);
 	
@@ -701,7 +703,15 @@ void BallosBoss::RunDefeated(Object *o)
 		}
 		break;
 	}
-	
+}
+
+void ondeath_ballos(Object *o)
+{
+	// as soon as one of his forms is defeated make him non-killable
+	// until the init for the next form runs and makes him killable again.
+	// intended to fix the extremely rare possibility of killing him completely
+	// after his 1st form instead of moving on to the spiky rotators like he should.
+	o->hp = 999999;
 }
 
 /*
@@ -737,12 +747,15 @@ void BallosBoss::run_eye(int index)
 		}
 		case EYE_OPENING+1:
 		{
-			ANIMATE_FWD(2);
-			if (o->frame >= 3)
+			if (++o->animtimer > 2)
 			{
-				o->flags &= ~FLAG_INVULNERABLE;
-				o->invisible = true;
-				o->state++;
+				o->animtimer = 0;
+				if (++o->frame >= 3)
+				{
+					o->flags &= ~FLAG_INVULNERABLE;
+					o->invisible = true;
+					o->state++;
+				}
 			}
 		}
 		break;
@@ -752,6 +765,7 @@ void BallosBoss::run_eye(int index)
 		{
 			o->frame = 3;
 			o->invisible = false;
+			o->flags |= FLAG_INVULNERABLE;
 			
 			o->animtimer = 0;
 			o->state++;
@@ -760,7 +774,7 @@ void BallosBoss::run_eye(int index)
 		{
 			if (++o->animtimer > 2)
 			{
-				o->flags |= FLAG_INVULNERABLE;
+				o->animtimer = 0;
 				if (--o->frame <= 0)
 				{
 					o->frame = 0;

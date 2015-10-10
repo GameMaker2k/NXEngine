@@ -1,6 +1,5 @@
-#!/bin/bash
-
 makegen +q
 tools/genobjnametable
-
-make -j2
+make -j4
+%nx
+hide

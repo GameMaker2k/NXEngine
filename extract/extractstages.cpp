@@ -4,10 +4,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
 #include <sys/stat.h>
 #include "../graphics/safemode.h"
 #include "../common/StringList.h"
+#include "../common/basics.h"
 #include "../stagedata.h"
 #include "../maprecord.h"
 #include "extractstages.fdh"
@@ -95,7 +95,7 @@ int i;
 	}
 	
 	// write out
-	FILE *fpo = fopen("stage.dat", "wb");
+	FILE *fpo = fileopen("stage.dat", "wb");
 	if (!fpo)
 	{
 		status("failed to open stage.dat for writing");
